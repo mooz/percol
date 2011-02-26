@@ -15,6 +15,8 @@ def get_ttyname():
 def reconnect_descriptors(tty):
     target = {}
 
+    tty_desc = tty.fileno()
+
     for name, mode in (("stdin", "r"), ("stdout", "w"), ("stderr", "w")):
         f = getattr(sys, name)
 
@@ -22,22 +24,21 @@ def reconnect_descriptors(tty):
             # f is TTY
             target[name] = f
         else:
-            # f is other process's output / input
+            # f is other process's output / input or a file
 
-            tty_desc = tty.fileno()
+            # save descriptor connected with other process
             std_desc = f.fileno()
+            other_desc = os.dup(std_desc)
 
-            other_desc = os.dup(std_desc)  # save descriptor connected with other process
-            # f.close()
-            os.dup2(tty_desc, std_desc)    # set std descriptor. std_desc will be invalid.
-
-            print("sys.{0} is switched to {1}".format(name, std_desc))
+            # set std descriptor. std_desc become invalid.
+            os.dup2(tty_desc, std_desc)
 
             # set file object connected to other_desc to corresponding one of sys.{stdin, stdout, stderr}
             try:
                 target[name] = os.fdopen(other_desc, mode)
             except OSError:
-                # /dev/null
+                # maybe mode specification is invalid or /dev/null is specified (?)
+                target[name] = None
                 print("Failed to open {0}".format(other_desc))
 
     return target
@@ -49,7 +50,7 @@ Usage: {0} [TTY]
 """.format(__file__))
 
 if __name__ == "__main__":
-    ttyname = get_ttyname()
+    ttyname = sys.argv[0] if len(sys.argv) > 0 else get_ttyname()
 
     if not ttyname:
         print_usage()
@@ -58,5 +59,5 @@ if __name__ == "__main__":
     with open(ttyname, "r+w") as tty:
         target = reconnect_descriptors(tty)
 
-        with Percol(target["stdin"], target) as percol:
+        with Percol(target) as percol:
             percol.loop()

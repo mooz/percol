@@ -30,9 +30,15 @@ class TerminateLoop(Exception):
         return repr(self.value)
 
 class Percol:
-    def __init__(self, file, target):
-        self.collection = file.read().split("\n")
+    def __init__(self, target):
+        self.stdin  = target["stdin"]
+        self.stdout = target["stdout"]
+        self.stderr = target["stderr"]
+
+        self.collection = self.stdin.read().split("\n")
         self.target = target
+
+        self.output_buffer = []
 
     def __enter__(self):
         self.screen = curses.initscr()
@@ -54,9 +60,11 @@ class Percol:
     def __exit__(self, exc_type, exc_value, traceback):
         curses.endwin()
 
-    def output(self, str):
-        if "stdout" in self.target:
-            self.target["stdout"].write(str)
+        if self.stdout:
+            self.stdout.write("".join(self.output_buffer))
+
+    def output(self, s):
+        self.output_buffer.append(s)
 
     def loop(self):
         scr = self.screen
@@ -87,8 +95,7 @@ class Percol:
             elif ch == CTRL_P:
                 status["index"] = (status["index"] - 1) % status["rows"]
             elif ch == ENTER:
-                self.output(candidates[status["index"]] or "Dummy")
-                print("Selected " + (candidates[status["index"]] or "Dummy"))
+                self.output("{0}\n".format(candidates[status["index"]]))
                 raise TerminateLoop("Bye!")
             elif ch < 0:
                 raise TerminateLoop("Bye!")
@@ -121,7 +128,7 @@ class Percol:
             i = -1
             for i, result in enumerate(islice(self.search(query), CANDIDATES_MAX)):
                 display_result(i + offset, result, is_current = i == status["index"])
-                candidates[i]
+                candidates[i] = result[0]
 
             status["rows"] = i + 1
 
