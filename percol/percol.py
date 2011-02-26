@@ -64,15 +64,17 @@ class Percol:
             self.stdout.write("".join(self.output_buffer))
 
     def output(self, s):
+        # delay actual output (wait curses to finish)
         self.output_buffer.append(s)
 
     def loop(self):
         scr = self.screen
 
-        status = { "index" : 0, "rows" : 0 }
+        status = { "index"      : 0,
+                   "rows "      : 0,
+                   "results"    : None }
 
         CANDIDATES_MAX = 10
-        candidates     = [None] * CANDIDATES_MAX
 
         def handle_special(s, ch):
             ENTER     = 10
@@ -95,12 +97,27 @@ class Percol:
             elif ch == CTRL_P:
                 status["index"] = (status["index"] - 1) % status["rows"]
             elif ch == ENTER:
-                self.output("{0}\n".format(candidates[status["index"]]))
+                self.output("{0}\n".format(get_selected_candidate()))
                 raise TerminateLoop("Bye!")
             elif ch < 0:
                 raise TerminateLoop("Bye!")
 
             return s
+
+        def log(name, s):
+            with open("/tmp/log", "w+") as f:
+                f.write(name + " :: " + str(s) + "\n")
+
+        def get_selected_candidate():
+            results = status["results"]
+            index   = status["index"]
+
+            # log("results", results)
+            # log("index", index)
+            try:
+                return results[index][0]
+            except IndexError:
+                return ""
 
         def display_result(pos, result, is_current = False):
             line, pairs = result
@@ -115,27 +132,26 @@ class Percol:
 
                 try:
                     for offset in offsets:
-                        scr.attron(curses.A_BOLD)
                         scr.addstr(pos, offset, line[offset:offset + qlen], curses.color_pair(2))
-                        scr.attroff(curses.A_BOLD)
                 except curses.error:
                     pass
 
-        def do_search(query):
-            offset = 2
+        def display_results():
+            voffset = 1
+            for i, result in enumerate(status["results"]):
+                display_result(i + voffset, result, is_current = i == status["index"])
+            scr.refresh()
 
-            # display candidates
-            i = -1
-            for i, result in enumerate(islice(self.search(query), CANDIDATES_MAX)):
-                display_result(i + offset, result, is_current = i == status["index"])
-                candidates[i] = result[0]
-
-            status["rows"] = i + 1
-
+        def display_prompt(query):
             # display prompt
             prompt_str = "QUERY> " + query
-            scr.addstr(1, 0, prompt_str)
-            scr.move(1, len(prompt_str))
+            scr.addstr(0, 0, prompt_str)
+            scr.move(0, len(prompt_str))
+
+        def do_search(query):
+            status["index"]   = 0
+            status["results"] = [result for result in islice(self.search(query), CANDIDATES_MAX)]
+            status["rows"]    = len(status["results"])
 
         def input_query():
             ch = scr.getch()
@@ -148,33 +164,35 @@ class Percol:
                     q = handle_special(query, ch)
             except ValueError:
                 pass
-            except TerminateLoop:
-                return None
 
-            # display key code
-            scr.addstr(0, 40, "<keycode: {0}>".format(ch))
+            # DEBUG: display key code
+            scr.addstr(0, 30, "<keycode: {0}>".format(ch))
 
             return q
 
-        query = ""
+        def refresh_display():
+            display_results()
+            display_prompt(query)
+            scr.refresh()
+
+        query     = ""
         old_query = query
 
         # init
         do_search(query)
-        scr.refresh()
+        refresh_display()
 
         while True:
-            query = input_query()
+            try:
+                query = input_query()
 
-            if query is None:
+                if query != old_query:
+                    do_search(query)
+                    old_query = query
+
+                refresh_display()
+            except TerminateLoop:
                 break
-
-            if query != old_query:
-                status["index"] = 0
-            old_query = query
-
-            do_search(query)
-            scr.refresh()
 
     def search(self, query):
         def find_all(needle, haystack):
