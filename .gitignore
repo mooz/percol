@@ -1,0 +1,7 @@
+*.pyc
+#*#
+.*~
+*~
+Thumbs.db
+.DS_Store
+tags
