@@ -15,7 +15,7 @@ def get_ttyname():
 def reconnect_descriptors(tty):
     target = {}
 
-    for name in "stdin", "stdout", "stderr":
+    for name, mode in (("stdin", "r"), ("stdout", "w"), ("stderr", "w")):
         f = getattr(sys, name)
 
         if f.isatty():
@@ -28,13 +28,14 @@ def reconnect_descriptors(tty):
             std_desc = f.fileno()
 
             other_desc = os.dup(std_desc)  # save descriptor connected with other process
+            # f.close()
             os.dup2(tty_desc, std_desc)    # set std descriptor. std_desc will be invalid.
 
             print("sys.{0} is switched to {1}".format(name, std_desc))
 
             # set file object connected to other_desc to corresponding one of sys.{stdin, stdout, stderr}
             try:
-                target[name] = os.fdopen(other_desc)
+                target[name] = os.fdopen(other_desc, mode)
             except OSError:
                 # /dev/null
                 print("Failed to open {0}".format(other_desc))
