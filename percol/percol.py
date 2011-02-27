@@ -40,12 +40,22 @@ class Percol:
 
         self.output_buffer = []
 
+        self.colors = {
+            "normal_line"      : 1,
+            "selected_line"    : 2,
+            "keyword"          : 3,
+            "selected_keyword" : 4
+        }
+
     def __enter__(self):
         self.screen = curses.initscr()
 
         curses.start_color()
-        curses.init_pair(1, curses.COLOR_RED, curses.COLOR_WHITE) # foreground, background
-        curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK) # foreground, background
+        # foreground, background
+        curses.init_pair(self.colors["normal_line"]     , curses.COLOR_WHITE,  curses.COLOR_BLACK) # normal
+        curses.init_pair(self.colors["selected_line"]   , curses.COLOR_RED,    curses.COLOR_WHITE) # line selected
+        curses.init_pair(self.colors["keyword"]         , curses.COLOR_YELLOW, curses.COLOR_BLACK) # keyword
+        curses.init_pair(self.colors["selected_keyword"], curses.COLOR_BLACK,  curses.COLOR_WHITE) # keyword selected
 
         def on_inturrupt(signum, frame):
             pass
@@ -75,7 +85,10 @@ class Percol:
         self.output_buffer.append(s)
 
     def update_candidates_max(self):
-        self.CANDIDATES_MAX = self.screen.getmaxyx()[0] - 1
+        y, x = self.screen.getmaxyx()
+
+        self.WIDTH          = x
+        self.CANDIDATES_MAX = y - 1
 
     def loop(self):
         scr = self.screen
@@ -130,15 +143,16 @@ class Percol:
         def display_result(pos, result, is_current = False):
             line, pairs = result
 
-            if is_current:
-                scr.addstr(pos, 0, line, curses.color_pair(1))
-            else:
-                scr.addstr(pos, 0, line)
+            line_color    = curses.color_pair(self.colors["selected_line"] if is_current else self.colors["normal_line"])
+            keyword_color = curses.color_pair(self.colors["selected_keyword"] if is_current else self.colors["keyword"])
 
+            scr.addnstr(pos, 0, line, self.WIDTH, line_color)
+
+            # highlight only not-selected lines
             for q, offsets in pairs:
                 qlen = len(q)
                 for offset in offsets:
-                    scr.addstr(pos, offset, line[offset:offset + qlen], curses.color_pair(2))
+                    scr.addnstr(pos, offset, line[offset:offset + qlen], self.WIDTH - offset, keyword_color)
 
         def display_results():
             voffset = 1
@@ -152,7 +166,7 @@ class Percol:
             # display prompt
             try:
                 prompt_str = "QUERY> " + query
-                scr.addstr(0, 0, prompt_str)
+                scr.addnstr(0, 0, prompt_str, self.WIDTH)
                 scr.move(0, len(prompt_str))
             except curses.error:
                 pass
@@ -179,7 +193,7 @@ class Percol:
                 pass
 
             # DEBUG: display key code
-            scr.addstr(0, 30, "<keycode: {0}>".format(ch))
+            scr.addnstr(0, 30, "<keycode: {0}>".format(ch), self.WIDTH)
 
             return q
 
