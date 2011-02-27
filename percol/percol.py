@@ -104,16 +104,14 @@ class Percol:
 
             return s
 
-        def log(name, s):
-            with open("/tmp/log", "w+") as f:
+        def log(name, s = ""):
+            with open("/tmp/log", "a") as f:
                 f.write(name + " :: " + str(s) + "\n")
 
         def get_selected_candidate():
             results = status["results"]
             index   = status["index"]
 
-            # log("results", results)
-            # log("index", index)
             try:
                 return results[index][0]
             except IndexError:
