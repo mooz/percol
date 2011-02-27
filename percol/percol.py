@@ -50,14 +50,14 @@ class Percol:
         def on_inturrupt(signum, frame):
             pass
 
-        def on_window_resize(signum, frame):
-            self.update_candidates_max()
+        # def on_window_resize(signum, frame):
+        #     self.update_candidates_max()
 
         # XXX: When we set signal.SIG_IGN to 2nd argument,
         # it seems that ^c key cannot be handled with getch.
         # signal.signal(signal.SIGINT, signal.SIG_IGN)
         signal.signal(signal.SIGINT, on_inturrupt)
-        signal.signal(signal.SIGWINCH, on_window_resize)
+        # signal.signal(signal.SIGWINCH, on_window_resize)
 
         curses.noecho()
         curses.cbreak()
@@ -169,6 +169,10 @@ class Percol:
             try:
                 if 32 <= ch <= 126:
                     q = query + chr(ch)
+                elif ch == curses.KEY_RESIZE:
+                    # resize
+                    q = query
+                    self.update_candidates_max()
                 else:
                     q = handle_special(query, ch)
             except ValueError:
