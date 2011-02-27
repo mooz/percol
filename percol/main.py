@@ -15,9 +15,11 @@ def get_ttyname():
 def reconnect_descriptors(tty):
     target = {}
 
+    stdios = (("stdin", "r"), ("stdout", "w"), ("stderr", "w"))
+
     tty_desc = tty.fileno()
 
-    for name, mode in (("stdin", "r"), ("stdout", "w"), ("stderr", "w")):
+    for name, mode in stdios:
         f = getattr(sys, name)
 
         if f.isatty():
