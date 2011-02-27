@@ -52,7 +52,7 @@ Usage: {0} [TTY]
 """.format(__file__))
 
 if __name__ == "__main__":
-    ttyname = sys.argv[0] if len(sys.argv) > 0 else get_ttyname()
+    ttyname = sys.argv[1] if len(sys.argv) > 1 else get_ttyname()
 
     if not ttyname:
         print_usage()
