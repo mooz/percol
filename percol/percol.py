@@ -47,10 +47,17 @@ class Percol:
         curses.init_pair(1, curses.COLOR_RED, curses.COLOR_WHITE) # foreground, background
         curses.init_pair(2, curses.COLOR_YELLOW, curses.COLOR_BLACK) # foreground, background
 
+        def on_inturrupt(signum, frame):
+            pass
+
+        def on_window_resize(signum, frame):
+            self.update_candidates_max()
+
         # XXX: When we set signal.SIG_IGN to 2nd argument,
         # it seems that ^c key cannot be handled with getch.
         # signal.signal(signal.SIGINT, signal.SIG_IGN)
-        signal.signal(signal.SIGINT, lambda signum, frame: None)
+        signal.signal(signal.SIGINT, on_inturrupt)
+        signal.signal(signal.SIGWINCH, on_window_resize)
 
         curses.noecho()
         curses.cbreak()
@@ -67,6 +74,9 @@ class Percol:
         # delay actual output (wait curses to finish)
         self.output_buffer.append(s)
 
+    def update_candidates_max(self):
+        self.CANDIDATES_MAX = self.screen.getmaxyx()[0] - 1
+
     def loop(self):
         scr = self.screen
 
@@ -74,7 +84,7 @@ class Percol:
                    "rows "      : 0,
                    "results"    : None }
 
-        CANDIDATES_MAX = 10
+        self.update_candidates_max()
 
         def handle_special(s, ch):
             ENTER     = 10
@@ -127,28 +137,29 @@ class Percol:
 
             for q, offsets in pairs:
                 qlen = len(q)
-
-                try:
-                    for offset in offsets:
-                        scr.addstr(pos, offset, line[offset:offset + qlen], curses.color_pair(2))
-                except curses.error:
-                    pass
+                for offset in offsets:
+                    scr.addstr(pos, offset, line[offset:offset + qlen], curses.color_pair(2))
 
         def display_results():
             voffset = 1
-            for i, result in enumerate(status["results"]):
-                display_result(i + voffset, result, is_current = i == status["index"])
-            scr.refresh()
+            try:
+                for i, result in enumerate(status["results"]):
+                    display_result(i + voffset, result, is_current = i == status["index"])
+            except curses.error:
+                pass
 
         def display_prompt(query):
             # display prompt
-            prompt_str = "QUERY> " + query
-            scr.addstr(0, 0, prompt_str)
-            scr.move(0, len(prompt_str))
+            try:
+                prompt_str = "QUERY> " + query
+                scr.addstr(0, 0, prompt_str)
+                scr.move(0, len(prompt_str))
+            except curses.error:
+                pass
 
         def do_search(query):
             status["index"]   = 0
-            status["results"] = [result for result in islice(self.search(query), CANDIDATES_MAX)]
+            status["results"] = [result for result in islice(self.search(query), self.CANDIDATES_MAX)]
             status["rows"]    = len(status["results"])
 
         def input_query():
