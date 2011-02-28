@@ -41,10 +41,10 @@ class Percol:
         self.output_buffer = []
 
         self.colors = {
-            "normal_line"      : 1,
-            "selected_line"    : 2,
-            "keyword"          : 3,
-            "selected_keyword" : 4
+            "normal_line"   : 1,
+            "selected_line" : 2,
+            "marked_line"   : 3,
+            "keyword"       : 4,
         }
 
     def __enter__(self):
@@ -54,8 +54,8 @@ class Percol:
         # foreground, background
         curses.init_pair(self.colors["normal_line"]     , curses.COLOR_WHITE,  curses.COLOR_BLACK) # normal
         curses.init_pair(self.colors["selected_line"]   , curses.COLOR_RED,    curses.COLOR_WHITE) # line selected
+        curses.init_pair(self.colors["marked_line"]     , curses.COLOR_BLACK,  curses.COLOR_CYAN)  # line marked
         curses.init_pair(self.colors["keyword"]         , curses.COLOR_YELLOW, curses.COLOR_BLACK) # keyword
-        curses.init_pair(self.colors["selected_keyword"], curses.COLOR_BLACK,  curses.COLOR_WHITE) # keyword selected
 
         def on_inturrupt(signum, frame):
             pass
@@ -95,7 +95,8 @@ class Percol:
 
         status = { "index"      : 0,
                    "rows "      : 0,
-                   "results"    : None }
+                   "results"    : None,
+                   "marks"      : None }
 
         self.update_candidates_max()
 
@@ -103,6 +104,7 @@ class Percol:
             ENTER     = 10
             BACKSPACE = 127
             DELETE    = 126
+            CTRL_SPC  = 0
             CTRL_A    = 1
             CTRL_B    = 2
             CTRL_C    = 3
@@ -111,16 +113,44 @@ class Percol:
             CTRL_N    = 14
             CTRL_P    = 16
 
-            if ch in (BACKSPACE, CTRL_H):
-                return s[:-1]
-            elif ch == CTRL_A:
-                return ""
-            elif ch == CTRL_N:
+            def select_next():
                 status["index"] = (status["index"] + 1) % status["rows"]
-            elif ch == CTRL_P:
+
+            def select_previous():
                 status["index"] = (status["index"] - 1) % status["rows"]
+
+            def toggle_mark():
+                status["marks"][status["index"]] ^= True
+
+            def finish():
+                any_marked = False
+
+                # TODO: make this action customizable
+                def execute_action(arg):
+                    self.output("{0}\n".format(arg))
+
+                for i, marked in enumerate(status["marks"]):
+                    if marked:
+                        any_marked = True
+                        execute_action(get_candidate(i))
+
+                if not any_marked:
+                    execute_action(get_selected_candidate())
+
+            if ch in (BACKSPACE, CTRL_H):
+                s = s[:-1]
+            elif ch == CTRL_A:
+                s = ""
+            elif ch == CTRL_N:
+                select_next()
+            elif ch == CTRL_P:
+                select_previous()
+            elif ch == CTRL_SPC:
+                # mark
+                toggle_mark()
+                select_next()
             elif ch == ENTER:
-                self.output("{0}\n".format(get_selected_candidate()))
+                finish()
                 raise TerminateLoop("Bye!")
             elif ch < 0:
                 raise TerminateLoop("Bye!")
@@ -131,20 +161,29 @@ class Percol:
             with open("/tmp/log", "a") as f:
                 f.write(name + " :: " + str(s) + "\n")
 
-        def get_selected_candidate():
+        def get_candidate(index):
             results = status["results"]
-            index   = status["index"]
 
             try:
                 return results[index][0]
             except IndexError:
-                return ""
+                return None
 
-        def display_result(pos, result, is_current = False):
+        def get_selected_candidate():
+            return get_candidate(status["index"])
+
+        def display_result(pos, result, is_current = False, is_marked = False):
             line, pairs = result
 
-            line_color    = curses.color_pair(self.colors["selected_line"] if is_current else self.colors["normal_line"])
-            keyword_color = curses.color_pair(self.colors["selected_keyword"] if is_current else self.colors["keyword"])
+            if is_current:
+                line_color = curses.color_pair(self.colors["selected_line"])
+            else:
+                if is_marked:
+                    line_color = curses.color_pair(self.colors["marked_line"])
+                else:
+                    line_color = curses.color_pair(self.colors["normal_line"])
+
+            keyword_color = curses.color_pair(self.colors["keyword"])
 
             scr.addnstr(pos, 0, line, self.WIDTH, line_color)
 
@@ -158,7 +197,9 @@ class Percol:
             voffset = 1
             try:
                 for i, result in enumerate(status["results"]):
-                    display_result(i + voffset, result, is_current = i == status["index"])
+                    display_result(i + voffset, result,
+                                   is_current = i == status["index"],
+                                   is_marked = status["marks"][i])
             except curses.error:
                 pass
 
@@ -171,10 +212,21 @@ class Percol:
             except curses.error:
                 pass
 
+        results_cache = {}
+        cache_enabled = True
         def do_search(query):
-            status["index"]   = 0
-            status["results"] = [result for result in islice(self.search(query), self.CANDIDATES_MAX)]
-            status["rows"]    = len(status["results"])
+            status["index"] = 0
+
+            if cache_enabled and results_cache.has_key(query):
+                status["results"] = results_cache[query]
+            else:
+                status["results"] = [result for result in islice(self.search(query), self.CANDIDATES_MAX)]
+                if cache_enabled:
+                    results_cache[query] = status["results"]
+
+            results_count   = len(status["results"])
+            status["marks"] = [False] * results_count
+            status["rows"]  = results_count
 
         def input_query():
             ch = scr.getch()
