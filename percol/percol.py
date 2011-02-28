@@ -19,6 +19,7 @@
 import sys
 import signal
 import curses
+import math
 
 from itertools import islice
 
@@ -224,13 +225,22 @@ class Percol:
     def display_prompt(self, query = None):
         if query is None:
             query = self.status["query"]
+
         # display prompt
         try:
             prompt_str = "QUERY> " + query
             self.screen.addnstr(0, 0, prompt_str, self.WIDTH)
-            self.screen.move(0, len(prompt_str))
         except curses.error:
             pass
+
+        # display page number
+        page_n       = int(self.status["index"] / self.RESULTS_DISPLAY_MAX) + 1
+        total_page_n = int(math.ceil(self.status["rows"] / self.RESULTS_DISPLAY_MAX))
+        rprompt      = "[{0}/{1}]".format(page_n, total_page_n)
+        self.screen.addnstr(0, self.WIDTH - len(rprompt), rprompt, len(rprompt))
+
+        # move caret to the prompt
+        self.screen.move(0, len(prompt_str))
 
     def handle_special(self, s, ch):
         ENTER     = 10
