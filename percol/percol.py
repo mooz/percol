@@ -155,7 +155,7 @@ class Percol:
         return self.get_result(self.status["index"])
 
     def display_line(self, y, x, s, color = None):
-        if not color:
+        if color is None:
             color = curses.color_pair(self.colors["normal_line"])
 
         self.screen.addnstr(y, x, s, self.WIDTH, color)
@@ -200,7 +200,7 @@ class Percol:
                 pass
 
     def display_prompt(self, query = None):
-        if not query:
+        if query is None:
             query = self.status["query"]
         # display prompt
         try:
