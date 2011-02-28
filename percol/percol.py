@@ -235,7 +235,7 @@ class Percol:
 
         # display page number
         page_n       = int(self.status["index"] / self.RESULTS_DISPLAY_MAX) + 1
-        total_page_n = int(math.ceil(self.status["rows"] / self.RESULTS_DISPLAY_MAX))
+        total_page_n = max(int(math.ceil(self.status["rows"] / self.RESULTS_DISPLAY_MAX)), 1)
         rprompt      = "[{0}/{1}]".format(page_n, total_page_n)
         self.screen.addnstr(0, self.WIDTH - len(rprompt), rprompt, len(rprompt))
 
