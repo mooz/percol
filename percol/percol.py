@@ -149,6 +149,8 @@ class Percol:
 
         if got_results_count > 0:
             self.status["results"].extend(results)
+            self.status["marks"].extend([False] * got_results_count)
+            self.status["rows"] += got_results_count
 
         return got_results_count
 
