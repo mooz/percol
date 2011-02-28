@@ -151,7 +151,7 @@ class Percol:
         except IndexError:
             return None
 
-    def get_selected_result(self, ):
+    def get_selected_result(self):
         return self.get_result(self.status["index"])
 
     def display_line(self, y, x, s, color = None):
