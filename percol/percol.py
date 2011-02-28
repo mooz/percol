@@ -178,7 +178,7 @@ class Percol:
 
         def input_query():
             ch = scr.getch()
-            scr.clear()
+            scr.erase()
 
             try:
                 if 32 <= ch <= 126:
