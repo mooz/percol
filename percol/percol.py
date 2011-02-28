@@ -187,6 +187,12 @@ class Percol:
 
             scr.addnstr(pos, 0, line, self.WIDTH, line_color)
 
+            # add padding
+            line_len    = len(line)
+            padding_len = self.WIDTH - line_len
+            if padding_len > 0:
+                scr.addstr(pos, line_len, " " * padding_len, line_color)
+
             # highlight only not-selected lines
             for q, offsets in pairs:
                 qlen = len(q)
