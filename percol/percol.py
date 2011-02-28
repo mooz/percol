@@ -22,6 +22,10 @@ import curses
 
 from itertools import islice
 
+def log(name, s = ""):
+    with open("/tmp/log", "a") as f:
+        f.write(name + " : " + str(s) + "\n")
+
 class TerminateLoop(Exception):
     def __init__(self, value):
         self.value = value
@@ -90,230 +94,240 @@ class Percol:
         self.WIDTH          = x
         self.CANDIDATES_MAX = y - 1
 
-    def loop(self):
-        scr = self.screen
-
-        status = { "index"      : 0,
-                   "rows "      : 0,
-                   "results"    : None,
-                   "marks"      : None }
-
+    def init_display(self):
         self.update_candidates_max()
+        self.do_search("")
+        self.refresh_display()
 
-        def handle_special(s, ch):
-            ENTER     = 10
-            BACKSPACE = 127
-            DELETE    = 126
-            CTRL_SPC  = 0
-            CTRL_A    = 1
-            CTRL_B    = 2
-            CTRL_C    = 3
-            CTRL_D    = 4
-            CTRL_H    = 8
-            CTRL_N    = 14
-            CTRL_P    = 16
+    def loop(self):
+        self.status = {
+            "index"   : 0,
+            "rows "   : 0,
+            "results" : None,
+            "marks"   : None,
+            "query"   : None,
+        }
 
-            def select_next():
-                status["index"] = (status["index"] + 1) % status["rows"]
+        self.results_cache = {}
 
-            def select_previous():
-                status["index"] = (status["index"] - 1) % status["rows"]
+        old_query = self.status["query"] = ""
 
-            def toggle_mark():
-                status["marks"][status["index"]] ^= True
-
-            def finish():
-                any_marked = False
-
-                # TODO: make this action customizable
-                def execute_action(arg):
-                    self.output("{0}\n".format(arg))
-
-                for i, marked in enumerate(status["marks"]):
-                    if marked:
-                        any_marked = True
-                        execute_action(get_candidate(i))
-
-                if not any_marked:
-                    execute_action(get_selected_candidate())
-
-            if ch in (BACKSPACE, CTRL_H):
-                s = s[:-1]
-            elif ch == CTRL_A:
-                s = ""
-            elif ch == CTRL_N:
-                select_next()
-            elif ch == CTRL_P:
-                select_previous()
-            elif ch == CTRL_SPC:
-                # mark
-                toggle_mark()
-                select_next()
-            elif ch == ENTER:
-                finish()
-                raise TerminateLoop("Bye!")
-            elif ch < 0:
-                raise TerminateLoop("Bye!")
-
-            return s
-
-        def log(name, s = ""):
-            with open("/tmp/log", "a") as f:
-                f.write(name + " :: " + str(s) + "\n")
-
-        def get_candidate(index):
-            results = status["results"]
-
-            try:
-                return results[index][0]
-            except IndexError:
-                return None
-
-        def get_selected_candidate():
-            return get_candidate(status["index"])
-
-        def display_result(pos, result, is_current = False, is_marked = False):
-            line, pairs = result
-
-            if is_current:
-                line_color = curses.color_pair(self.colors["selected_line"])
-            else:
-                if is_marked:
-                    line_color = curses.color_pair(self.colors["marked_line"])
-                else:
-                    line_color = curses.color_pair(self.colors["normal_line"])
-
-            keyword_color = curses.color_pair(self.colors["keyword"])
-
-            scr.addnstr(pos, 0, line, self.WIDTH, line_color)
-
-            # add padding
-            line_len    = len(line)
-            padding_len = self.WIDTH - line_len
-            if padding_len > 0:
-                scr.addstr(pos, line_len, " " * padding_len, line_color)
-
-            # highlight not-selected lines only
-            if not is_current:
-                scr.attrset(curses.A_BOLD)
-                for q, offsets in pairs:
-                    qlen = len(q)
-                    for offset in offsets:
-                        scr.addnstr(pos, offset, line[offset:offset + qlen], self.WIDTH - offset, keyword_color)
-                scr.attroff(curses.A_BOLD)
-
-        def display_results():
-            voffset = 1
-            try:
-                for i, result in enumerate(status["results"]):
-                    display_result(i + voffset, result,
-                                   is_current = i == status["index"],
-                                   is_marked = status["marks"][i])
-            except curses.error:
-                pass
-
-        def display_prompt(query):
-            # display prompt
-            try:
-                prompt_str = "QUERY> " + query
-                scr.addnstr(0, 0, prompt_str, self.WIDTH)
-                scr.move(0, len(prompt_str))
-            except curses.error:
-                pass
-
-        results_cache = {}
-        cache_enabled = True
-        def do_search(query):
-            status["index"] = 0
-
-            if cache_enabled and results_cache.has_key(query):
-                status["results"] = results_cache[query]
-            else:
-                status["results"] = [result for result in islice(self.search(query), self.CANDIDATES_MAX)]
-                if cache_enabled:
-                    results_cache[query] = status["results"]
-
-            results_count   = len(status["results"])
-            status["marks"] = [False] * results_count
-            status["rows"]  = results_count
-
-        def input_query():
-            ch = scr.getch()
-            scr.erase()
-
-            try:
-                if 32 <= ch <= 126:
-                    q = query + chr(ch)
-                elif ch == curses.KEY_RESIZE:
-                    # resize
-                    q = query
-                    self.update_candidates_max()
-                else:
-                    q = handle_special(query, ch)
-            except ValueError:
-                pass
-
-            # DEBUG: display key code
-            scr.addnstr(0, 30, "<keycode: {0}>".format(ch), self.WIDTH)
-
-            return q
-
-        def refresh_display():
-            display_results()
-            display_prompt(query)
-            scr.refresh()
-
-        query     = ""
-        old_query = query
-
-        # init
-        do_search(query)
-        refresh_display()
+        self.init_display()
 
         while True:
             try:
-                query = input_query()
+                self.handle_key(self.screen.getch())
+
+                query = self.status["query"]
+
+                log("query", query)
 
                 if query != old_query:
-                    do_search(query)
+                    self.do_search(query)
                     old_query = query
 
-                refresh_display()
+                self.refresh_display()
             except TerminateLoop:
                 break
 
+    def do_search(self, query):
+        self.status["index"] = 0
+
+        if self.results_cache.has_key(query):
+            self.status["results"] = self.results_cache[query]
+            log("Used cache", query)
+        else:
+            self.status["results"] = [result for result in islice(self.search(query), self.CANDIDATES_MAX)]
+            self.results_cache[query] = self.status["results"]
+
+        results_count        = len(self.status["results"])
+        self.status["marks"] = [False] * results_count
+        self.status["rows"]  = results_count
+
+    def refresh_display(self):
+        self.screen.erase()
+        self.display_results()
+        self.display_prompt()
+        self.screen.refresh()
+
+    def get_candidate(self, index):
+        results = self.status["results"]
+
+        try:
+            return results[index][0]
+        except IndexError:
+            return None
+
+    def get_selected_candidate(self, ):
+        return self.get_candidate(self.status["index"])
+
+    def display_line(self, s, color):
+        self.screen.addnstr(pos, 0, line, self.WIDTH, line_color)
+
+        # add padding
+        line_len    = len(line)
+        padding_len = self.WIDTH - line_len
+        if padding_len > 0:
+            self.screen.addstr(pos, line_len, " " * padding_len, line_color)
+
+    def display_result(self, pos, result, is_current = False, is_marked = False):
+        line, pairs = result
+
+        if is_current:
+            line_color = curses.color_pair(self.colors["selected_line"])
+        else:
+            if is_marked:
+                line_color = curses.color_pair(self.colors["marked_line"])
+            else:
+                line_color = curses.color_pair(self.colors["normal_line"])
+
+        keyword_color = curses.color_pair(self.colors["keyword"])
+
+        self.screen.addnstr(pos, 0, line, self.WIDTH, line_color)
+
+        # add padding
+        line_len    = len(line)
+        padding_len = self.WIDTH - line_len
+        if padding_len > 0:
+            self.screen.addstr(pos, line_len, " " * padding_len, line_color)
+
+        # highlight not-selected lines only
+        if not is_current:
+            for q, offsets in pairs:
+                q_len = len(q)
+                for offset in offsets:
+                    self.screen.addnstr(pos, offset, line[offset:offset + q_len],
+                                        self.WIDTH - offset, keyword_color)
+
+    def display_results(self, ):
+        voffset = 1
+        for i, result in enumerate(self.status["results"]):
+            try:
+                self.display_result(i + voffset, result,
+                                    is_current = i == self.status["index"],
+                                    is_marked = self.status["marks"][i])
+            except curses.error:
+                pass
+
+    def display_prompt(self, query = None):
+        if not query:
+            query = self.status["query"]
+        # display prompt
+        try:
+            prompt_str = "QUERY> " + query
+            self.screen.addnstr(0, 0, prompt_str, self.WIDTH)
+            self.screen.move(0, len(prompt_str))
+        except curses.error:
+            pass
+
+    def handle_special(self, s, ch):
+        ENTER     = 10
+        BACKSPACE = 127
+        DELETE    = 126
+        CTRL_SPC  = 0
+        CTRL_A    = 1
+        CTRL_B    = 2
+        CTRL_C    = 3
+        CTRL_D    = 4
+        CTRL_H    = 8
+        CTRL_N    = 14
+        CTRL_P    = 16
+
+        def select_next():
+            self.status["index"] = (self.status["index"] + 1) % self.status["rows"]
+
+        def select_previous():
+            self.status["index"] = (self.status["index"] - 1) % self.status["rows"]
+
+        def toggle_mark():
+            self.status["marks"][self.status["index"]] ^= True
+
+        def finish():
+            any_marked = False
+
+            # TODO: make this action customizable
+            def execute_action(arg):
+                self.output("{0}\n".format(arg))
+
+            for i, marked in enumerate(self.status["marks"]):
+                if marked:
+                    any_marked = True
+                    execute_action(get_candidate(i))
+
+            if not any_marked:
+                execute_action(get_selected_candidate())
+
+        if ch in (BACKSPACE, CTRL_H):
+            s = s[:-1]
+        elif ch == CTRL_A:
+            s = ""
+        elif ch == CTRL_N:
+            select_next()
+        elif ch == CTRL_P:
+            select_previous()
+        elif ch == CTRL_SPC:
+            # mark
+            toggle_mark()
+            select_next()
+        elif ch == ENTER:
+            finish()
+            raise TerminateLoop("Bye!")
+        elif ch < 0:
+            raise TerminateLoop("Bye!")
+
+        return s
+
+    def handle_key(self, ch):
+        try:
+            if 32 <= ch <= 126:
+                self.status["query"] += chr(ch)
+            elif ch == curses.KEY_RESIZE:
+                # resize
+                self.update_candidates_max()
+            else:
+                self.status["query"] = self.handle_special(self.status["query"], ch)
+        except ValueError:
+            pass
+
+        # DEBUG: display key code
+        self.screen.addnstr(0, 30, "<keycode: {0}>".format(ch), self.WIDTH)
+
+    # ============================================================ #
+    # Find
+    # ============================================================ #
+
+    def find_all(self, needle, haystack):
+        stride = len(needle)
+
+        if stride == 0:
+            return [0]
+
+        start  = 0
+        res    = []
+
+        while True:
+            found = haystack.find(needle, start)
+            if found < 0:
+                break
+            res.append(found)
+            start = found + stride
+
+        return res
+
+    def and_find(self, queries, line):
+        res = []
+
+        for q in queries:
+            if not q in line:
+                return None
+            else:
+                res.append((q, self.find_all(q, line)))
+
+        return res
+
     def search(self, query):
-        def find_all(needle, haystack):
-            stride = len(needle)
-
-            if stride == 0:
-                return [0]
-
-            start  = 0
-            res    = []
-
-            while True:
-                found = haystack.find(needle, start)
-                if found < 0:
-                    break
-                res.append(found)
-                start = found + stride
-
-            return res
-
-        def and_find(queries, line):
-            res = []
-
-            for q in queries:
-                if not q in line:
-                    return None
-                else:
-                    res.append((q, find_all(q, line)))
-
-            return res
-
         for line in self.collection:
-            res = and_find(query.split(" "), line)
+            res = self.and_find(query.split(" "), line)
 
             if res:
                 yield line, res
