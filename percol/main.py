@@ -3,6 +3,7 @@
 
 import sys
 import os
+import locale
 
 from percol import Percol
 
@@ -45,6 +46,11 @@ def reconnect_descriptors(tty):
 
     return target
 
+def set_locale():
+    locale.setlocale(locale.LC_ALL, '')
+    code = locale.getpreferredencoding()
+    return code
+
 def print_usage():
     print("""\
 Usage: {0} [TTY]
@@ -53,6 +59,8 @@ Usage: {0} [TTY]
 
 if __name__ == "__main__":
     ttyname = sys.argv[1] if len(sys.argv) > 1 else get_ttyname()
+
+    code = set_locale()
 
     if not ttyname:
         print_usage()
