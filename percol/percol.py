@@ -166,7 +166,7 @@ class Percol:
         if padding_len > 0:
             self.screen.addstr(y, x + s_len, " " * padding_len, color)
 
-    def display_result(self, pos, result, is_current = False, is_marked = False):
+    def display_result(self, y, result, is_current = False, is_marked = False):
         line, pairs = result
 
         if is_current:
@@ -179,17 +179,17 @@ class Percol:
 
         keyword_color = curses.color_pair(self.colors["keyword"])
 
-        self.display_line(pos, 0, line, color = line_color)
+        self.display_line(y, 0, line, color = line_color)
 
         # highlight not-selected lines only
         if not is_current:
-            for q, offsets in pairs:
+            for q, x_offsets in pairs:
                 q_len = len(q)
-                for offset in offsets:
-                    self.screen.addnstr(pos, offset, line[offset:offset + q_len],
-                                        self.WIDTH - offset, keyword_color)
+                for x_offset in x_offsets:
+                    self.screen.addnstr(y, x_offset, line[x_offset:x_offset + q_len],
+                                        self.WIDTH - x_offset, keyword_color)
 
-    def display_results(self, ):
+    def display_results(self):
         voffset = 1
         for i, result in enumerate(self.status["results"]):
             try:
