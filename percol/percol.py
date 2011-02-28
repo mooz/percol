@@ -78,14 +78,15 @@ class Percol:
         # delay actual output (wait curses to finish)
         self.output_buffer.append(s)
 
-    def update_candidates_max(self):
-        y, x = self.screen.getmaxyx()
+    def update_screen_size(self):
+        self.HEIGHT, self.WIDTH = self.screen.getmaxyx()
 
-        self.WIDTH          = x
-        self.CANDIDATES_MAX = y - 1
+    @property
+    def RESULTS_DISPLAY_MAX(self):
+        return self.HEIGHT - 1
 
     def init_display(self):
-        self.update_candidates_max()
+        self.update_screen_size()
         self.do_search("")
         self.refresh_display()
 
@@ -127,7 +128,9 @@ class Percol:
             self.status["results"] = self.results_cache[query]
             log("Used cache", query)
         else:
-            self.status["results"] = [result for result in islice(self.search(query), self.CANDIDATES_MAX)]
+            self.status["results_generator"] = self.search(query)
+            self.status["results"] = [result for result
+                                      in islice(self.status["results_generator"], self.RESULTS_DISPLAY_MAX)]
             self.results_cache[query] = self.status["results"]
 
         results_count        = len(self.status["results"])
@@ -140,7 +143,7 @@ class Percol:
         self.display_prompt()
         self.screen.refresh()
 
-    def get_candidate(self, index):
+    def get_result(self, index):
         results = self.status["results"]
 
         try:
@@ -148,8 +151,8 @@ class Percol:
         except IndexError:
             return None
 
-    def get_selected_candidate(self, ):
-        return self.get_candidate(self.status["index"])
+    def get_selected_result(self, ):
+        return self.get_result(self.status["index"])
 
     def display_line(self, s, color):
         self.screen.addnstr(pos, 0, line, self.WIDTH, line_color)
@@ -242,10 +245,10 @@ class Percol:
             for i, marked in enumerate(self.status["marks"]):
                 if marked:
                     any_marked = True
-                    execute_action(get_candidate(i))
+                    execute_action(get_result(i))
 
             if not any_marked:
-                execute_action(get_selected_candidate())
+                execute_action(get_selected_result())
 
         if ch in (BACKSPACE, CTRL_H):
             s = s[:-1]
@@ -273,7 +276,7 @@ class Percol:
                 self.status["query"] += chr(ch)
             elif ch == curses.KEY_RESIZE:
                 # resize
-                self.update_candidates_max()
+                self.update_screen_size()
             else:
                 self.status["query"] = self.handle_special(self.status["query"], ch)
         except ValueError:
