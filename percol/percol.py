@@ -92,11 +92,13 @@ class Percol:
 
     def loop(self):
         self.status = {
-            "index"   : 0,
-            "rows "   : 0,
-            "results" : None,
-            "marks"   : None,
-            "query"   : None,
+            "index"             : 0,
+            "rows "             : 0,
+            "marks"             : None,
+            "query"             : None,
+            # result
+            "results"           : None,
+            "results_generator" : None,
         }
 
         self.results_cache = {}
@@ -125,17 +127,30 @@ class Percol:
         self.status["index"] = 0
 
         if self.results_cache.has_key(query):
-            self.status["results"] = self.results_cache[query]
+            self.status["results"], self.status["results_generator"] = self.results_cache[query]
             log("Used cache", query)
         else:
             self.status["results_generator"] = self.search(query)
             self.status["results"] = [result for result
                                       in islice(self.status["results_generator"], self.RESULTS_DISPLAY_MAX)]
-            self.results_cache[query] = self.status["results"]
+            # cache results and generator
+            self.results_cache[query] = self.status["results"], self.status["results_generator"]
 
         results_count        = len(self.status["results"])
         self.status["marks"] = [False] * results_count
         self.status["rows"]  = results_count
+
+    def get_more_results(self, count = None):
+        if count is None:
+            count = self.RESULTS_DISPLAY_MAX
+
+        results = islice([result for result in self.status["results_generator"]], count)
+        got_results_count = len(results)
+
+        if got_results_count > 0:
+            self.status["results"].extend(results)
+
+        return got_results_count
 
     def refresh_display(self):
         self.screen.erase()
