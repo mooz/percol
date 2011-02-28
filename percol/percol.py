@@ -34,6 +34,15 @@ class TerminateLoop(Exception):
         return repr(self.value)
 
 class Percol:
+    colors = {
+        "normal_line"   : 1,
+        "selected_line" : 2,
+        "marked_line"   : 3,
+        "keyword"       : 4,
+    }
+
+    RESULT_OFFSET_Y = 1
+
     def __init__(self, target):
         self.stdin  = target["stdin"]
         self.stdout = target["stdout"]
@@ -43,13 +52,6 @@ class Percol:
         self.target = target
 
         self.output_buffer = []
-
-        self.colors = {
-            "normal_line"   : 1,
-            "selected_line" : 2,
-            "marked_line"   : 3,
-            "keyword"       : 4,
-        }
 
     def __enter__(self):
         self.screen = curses.initscr()
@@ -113,8 +115,6 @@ class Percol:
 
                 query = self.status["query"]
 
-                log("query", query)
-
                 if query != old_query:
                     self.do_search(query)
                     old_query = query
@@ -128,7 +128,6 @@ class Percol:
 
         if self.results_cache.has_key(query):
             self.status["results"], self.status["results_generator"] = self.results_cache[query]
-            log("Used cache", query)
         else:
             self.status["results_generator"] = self.search(query)
             self.status["results"] = [result for result
@@ -144,7 +143,7 @@ class Percol:
         if count is None:
             count = self.RESULTS_DISPLAY_MAX
 
-        results = islice([result for result in self.status["results_generator"]], count)
+        results = [result for result in islice(self.status["results_generator"], count)]
         got_results_count = len(results)
 
         if got_results_count > 0:
@@ -207,12 +206,18 @@ class Percol:
                                         self.WIDTH - x_offset, keyword_color)
 
     def display_results(self):
-        voffset = 1
-        for i, result in enumerate(self.status["results"]):
+        voffset = self.RESULT_OFFSET_Y
+
+        abs_idx  = self.status["index"]
+        abs_head = self.RESULTS_DISPLAY_MAX * int(abs_idx / self.RESULTS_DISPLAY_MAX)
+        abs_tail = abs_head + self.RESULTS_DISPLAY_MAX
+
+        for pos, result in islice(enumerate(self.status["results"]), abs_head, abs_tail):
+            rel_pos = pos - abs_head
             try:
-                self.display_result(i + voffset, result,
-                                    is_current = i == self.status["index"],
-                                    is_marked = self.status["marks"][i])
+                self.display_result(rel_pos + voffset, result,
+                                    is_current = pos == self.status["index"],
+                                    is_marked = self.status["marks"][pos])
             except curses.error:
                 pass
 
@@ -241,6 +246,8 @@ class Percol:
         CTRL_P    = 16
 
         def select_next():
+            if self.status["index"] + 1 >= self.status["rows"]:
+                self.get_more_results()
             self.status["index"] = (self.status["index"] + 1) % self.status["rows"]
 
         def select_previous():
