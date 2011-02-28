@@ -11,7 +11,7 @@ In your `.zshrc`, put the lines below.
     which percol > /dev/null
     if [ $0 ]; then
         function percol_select_history() {
-            BUFFER="`tac ~/.histfile | percol`"
+            BUFFER="`tac $HISTFILE | percol`"
             zle -R -c               # refresh
         }
     
