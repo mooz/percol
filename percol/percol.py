@@ -61,17 +61,7 @@ class Percol:
         curses.init_pair(self.colors["marked_line"]     , curses.COLOR_BLACK,  curses.COLOR_CYAN)    # line marked
         curses.init_pair(self.colors["keyword"]         , curses.COLOR_YELLOW, curses.COLOR_BLACK)   # keyword
 
-        def on_inturrupt(signum, frame):
-            pass
-
-        # def on_window_resize(signum, frame):
-        #     self.update_candidates_max()
-
-        # XXX: When we set signal.SIG_IGN to 2nd argument,
-        # it seems that ^c key cannot be handled with getch.
-        # signal.signal(signal.SIGINT, signal.SIG_IGN)
-        signal.signal(signal.SIGINT, on_inturrupt)
-        # signal.signal(signal.SIGWINCH, on_window_resize)
+        signal.signal(signal.SIGINT, lambda signum, frame: None)
 
         curses.noecho()
         curses.cbreak()
