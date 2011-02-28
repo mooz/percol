@@ -276,10 +276,10 @@ class Percol:
             for i, marked in enumerate(self.status["marks"]):
                 if marked:
                     any_marked = True
-                    execute_action(get_result(i))
+                    execute_action(self.get_result(i))
 
             if not any_marked:
-                execute_action(get_selected_result())
+                execute_action(self.get_selected_result())
 
         if ch in (BACKSPACE, CTRL_H):
             s = s[:-1]
