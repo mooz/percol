@@ -52,10 +52,10 @@ class Percol:
 
         curses.start_color()
         # foreground, background
-        curses.init_pair(self.colors["normal_line"]     , curses.COLOR_WHITE,  curses.COLOR_BLACK) # normal
-        curses.init_pair(self.colors["selected_line"]   , curses.COLOR_RED,    curses.COLOR_WHITE) # line selected
-        curses.init_pair(self.colors["marked_line"]     , curses.COLOR_BLACK,  curses.COLOR_CYAN)  # line marked
-        curses.init_pair(self.colors["keyword"]         , curses.COLOR_YELLOW, curses.COLOR_BLACK) # keyword
+        curses.init_pair(self.colors["normal_line"]     , curses.COLOR_WHITE,  curses.COLOR_BLACK)   # normal
+        curses.init_pair(self.colors["selected_line"]   , curses.COLOR_WHITE,  curses.COLOR_MAGENTA) # line selected
+        curses.init_pair(self.colors["marked_line"]     , curses.COLOR_BLACK,  curses.COLOR_CYAN)    # line marked
+        curses.init_pair(self.colors["keyword"]         , curses.COLOR_YELLOW, curses.COLOR_BLACK)   # keyword
 
         def on_inturrupt(signum, frame):
             pass
@@ -193,11 +193,14 @@ class Percol:
             if padding_len > 0:
                 scr.addstr(pos, line_len, " " * padding_len, line_color)
 
-            # highlight only not-selected lines
-            for q, offsets in pairs:
-                qlen = len(q)
-                for offset in offsets:
-                    scr.addnstr(pos, offset, line[offset:offset + qlen], self.WIDTH - offset, keyword_color)
+            # highlight not-selected lines only
+            if not is_current:
+                scr.attrset(curses.A_BOLD)
+                for q, offsets in pairs:
+                    qlen = len(q)
+                    for offset in offsets:
+                        scr.addnstr(pos, offset, line[offset:offset + qlen], self.WIDTH - offset, keyword_color)
+                scr.attroff(curses.A_BOLD)
 
         def display_results():
             voffset = 1
