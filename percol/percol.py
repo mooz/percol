@@ -141,7 +141,7 @@ class Percol:
                     old_query = query
 
                 self.refresh_display()
-            except TerminateLoop:
+            except TerminateLoop as e:
                 break
 
     def do_search(self, query):
@@ -298,6 +298,7 @@ class Percol:
             if not any_marked:
                 execute_action(self.get_selected_result())
 
+        # TODO: make keymap
         if ch in (BACKSPACE, CTRL_H):
             s = s[:-1]
         elif ch == CTRL_A:
@@ -312,9 +313,9 @@ class Percol:
             select_next()
         elif ch == ENTER:
             finish()
-            raise TerminateLoop("Bye!")
+            raise TerminateLoop("Finished")
         elif ch < 0:
-            raise TerminateLoop("Bye!")
+            raise TerminateLoop("Canceled")
 
         return s
 
