@@ -24,7 +24,7 @@ import math
 from itertools import islice
 
 def log(name, s = ""):
-    with open("/tmp/log", "a") as f:
+    with open("/tmp/percol-log", "a") as f:
         f.write(name + " : " + str(s) + "\n")
 
 class TerminateLoop(Exception):
@@ -195,13 +195,17 @@ class Percol:
         if color is None:
             color = curses.color_pair(self.colors["normal_line"])
 
-        self.screen.addnstr(y, x, s, self.WIDTH, color)
+        self.screen.addnstr(y, x, s, self.WIDTH - x, color)
 
         # add padding
         s_len = len(s)
         padding_len = self.WIDTH - (x + s_len)
         if padding_len > 0:
-            self.screen.addstr(y, x + s_len, " " * padding_len, color)
+            try:
+                self.screen.addnstr(y, x + s_len, " " * padding_len, padding_len, color)
+            except curses.error as e:
+                # XXX: sometimes, we get error
+                pass
 
     def display_result(self, y, result, is_current = False, is_marked = False):
         line, pairs = result
@@ -224,8 +228,13 @@ class Percol:
         for q, x_offsets in pairs:
             q_len = len(q)
             for x_offset in x_offsets:
-                self.screen.addnstr(y, x_offset, line[x_offset:x_offset + q_len],
-                                    self.WIDTH - x_offset, keyword_style)
+                try:
+                    self.screen.addnstr(y, x_offset,
+                                        line[x_offset:x_offset + q_len],
+                                        self.WIDTH - x_offset,
+                                        keyword_style)
+                except curses.error as e:
+                    log("addnstr", e.message + " ({0})".format(y))
 
     def display_results(self):
         voffset = self.RESULT_OFFSET_Y
@@ -239,8 +248,8 @@ class Percol:
                 self.display_result(rel_pos + voffset, result,
                                     is_current = pos == self.status["index"],
                                     is_marked = self.status["marks"][pos])
-            except curses.error:
-                pass
+            except curses.error as e:
+                log("display_results", e.message)
 
     def display_prompt(self, query = None):
         if query is None:
