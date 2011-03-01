@@ -281,6 +281,12 @@ class Percol:
         # move caret to the prompt
         self.screen.move(0, len(prompt_str))
 
+    def select_index(self, idx):
+        if idx >= self.results_count:
+            self.get_more_results()
+
+        self.status["index"] = idx % self.results_count
+
     def handle_special(self, s, ch):
         ENTER     = 10
         BACKSPACE = 127
