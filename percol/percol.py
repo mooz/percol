@@ -42,23 +42,25 @@ class Percol:
         "keyword"       : 4,
     }
 
-    def __init__(self, target = None, collection = None, finder = None, actions = None):
-        if target:
-            self.stdin  = target["stdin"]
-            self.stdout = target["stdout"]
-            self.stderr = target["stderr"]
-        else:
+    def __init__(self, descriptors = None, collection = None, finder = None, actions = None):
+        if descriptors is None:
             self.stdin  = sys.stdin
             self.stdout = sys.stdout
             self.stderr = sys.stderr
+        else:
+            self.stdin  = descriptors["stdin"]
+            self.stdout = descriptors["stdout"]
+            self.stderr = descriptors["stderr"]
 
         if collection is None:
             self.collection = self.stdin.read().split("\n")
-            # self.collection = re.split("(?<!\\\\)\n", self.stdin.read())
+        else:
+            self.collection = collection
 
         if finder is None:
-            self.finder = FinderMultiQueryString(self.collection)
-            # self.finder = FinderMultiQueryRegex(self.collection)
+            self.finder = FinderMultiQueryString(self.collection) # FinderMultiQueryRegex(self.collection)
+        else:
+            self.finder = finder
 
     def __enter__(self):
         self.screen     = curses.initscr()
