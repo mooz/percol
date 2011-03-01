@@ -83,7 +83,7 @@ class Percol:
 
         # XXX: make this action customizable
         for s in self.output_buffer:
-            self.stdout.write("".join(self.output_buffer))
+            self.stdout.write(s)
 
     output_buffer = []
     def output(self, s):
