@@ -404,7 +404,8 @@ class Percol:
         "C-SPC" : lambda self, k: (self.toggle_mark(k), self.select_next(k)),
         # finish
         "RET"   : finish,
-        "C-m"   : finish,
+        "C-m"   : finish,       # XXX: C-m cannot be handled? (seems to be interpreted as C-j)
+        "C-j"   : finish,
         # cancel
         "C-g"   : cancel,
         "C-c"   : cancel
