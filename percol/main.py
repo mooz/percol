@@ -5,6 +5,8 @@ import sys
 import os
 import locale
 
+from optparse import OptionParser
+
 from percol import Percol
 
 def get_ttyname():
@@ -51,23 +53,37 @@ def set_locale():
     code = locale.getpreferredencoding()
     return code
 
-def print_usage():
-    print("""\
-Usage: {0} [TTY]
-  TTY  path to the tty (usually, $TTY)\
-""".format(__file__))
+def setup_options(parser):
+    parser.add_option("--tty", dest = "tty", help = "path to the TTY (usually, $TTY)", metavar = "TTY")
+    return 
 
 if __name__ == "__main__":
-    ttyname = sys.argv[1] if len(sys.argv) > 1 else get_ttyname()
+    parser = OptionParser(usage = "Usage: %prog [options] [FILE]")
+    setup_options(parser)
+    options, args = parser.parse_args()
+
+    def exit_program(msg=None):
+        if not msg is None:
+            print("\n" + msg + "\n")
+        parser.print_help()
+        exit(1)
+
+    ttyname = options.tty or get_ttyname()
+    if not ttyname:
+        exit_program("""Error: No tty name is given and failed to guess (maybe stderr is redirecred)""")
 
     code = set_locale()
 
-    if not ttyname:
-        print_usage()
-        exit(1)
-
     with open(ttyname, "r+w") as tty:
-        target = reconnect_descriptors(tty)
+        if not tty.isatty():
+            exit_program("Error: {0} is not a tty file".format(ttyname))
 
-        with Percol(target) as percol:
+        filename = args[0] if len(args) > 0 else None
+
+        collection = None
+        if filename:
+            with open(filename, "r") as f:
+                collection = f.read().split("\n")
+
+        with Percol(descriptors = reconnect_descriptors(tty), collection = collection) as percol:
             percol.loop()
