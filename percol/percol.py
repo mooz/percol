@@ -25,6 +25,7 @@ import re
 from itertools import islice
 
 import key, debug
+from finder import FinderMultiQueryString, FinderMultiQueryRegex
 
 class TerminateLoop(Exception):
     def __init__(self, value):
@@ -58,8 +59,8 @@ class Percol:
             # self.collection = re.split("(?<!\\\\)\n", self.stdin.read())
 
         if finder is None:
-            self.finder = PercolFinderANDString(self.collection)
-            # self.finder = PercolFinderANDRegex(self.collection)
+            self.finder = FinderMultiQueryString(self.collection)
+            # self.finder = FinderMultiQueryRegex(self.collection)
 
     def __enter__(self):
         self.screen     = curses.initscr()
@@ -397,95 +398,3 @@ class Percol:
         needed_count = self.needed_count
         if needed_count > 0:
             self.get_more_results(count = needed_count)
-
-# ============================================================ #
-# Finder
-# ============================================================ #
-
-import abc
-
-class PercolFinder(object):
-    __metaclass__ = abc.ABCMeta
-
-    @abc.abstractmethod
-    def find(self, query):
-        pass
-
-# ============================================================ #
-# Finder > AND search
-# ============================================================ #
-
-class PercolFinderAND(PercolFinder):
-    def __init__(self, collection, split_str = " ", split_re = None):
-        self.collection = collection
-        self.split_str  = split_str
-        self.split_re   = split_re
-
-    def dummy_res(self, query = ""):
-        return [[query, [(0, 0)]]]
-
-    def find(self, query):
-        query_is_empty = query == ""
-        use_re = not self.split_re is None
-
-        for line in self.collection:
-            if query_is_empty:
-                res = self.dummy_res(query)
-            else:
-                if use_re:
-                    queries = re.split(self.split_re, line)
-                else:
-                    queries = query.split(self.split_str)
-                res = self.and_find(queries, line)
-
-            if res:
-                yield line, res
-
-    def and_find(self, sub_queries, line):
-        res = []
-
-        for subq in sub_queries:
-            if subq != "":
-                find_info = self.find_all(subq, line)
-                if find_info:
-                    res.append((subq, find_info))
-
-        return res
-
-    # @abstract
-    def find_all(self, needle, haystack):
-        # return [(pos1, pos1_len), (pos2, pos2_len), ...]
-        #
-        # where `pos1', `pos2', ... are begining positions of all occurence of needle in `haystack'
-        # and `pos1_len', `pos2_len', ... are its length.
-        pass
-
-# ============================================================ #
-# Simple AND search
-# ============================================================ #
-
-class PercolFinderANDString(PercolFinderAND):
-    def find_all(self, needle, haystack):
-        stride = len(needle)
-        start  = 0
-        res    = []
-
-        while True:
-            found = haystack.find(needle, start)
-            if found < 0:
-                break
-            res.append((found, stride))
-            start = found + stride
-
-        return res
-
-# ============================================================ #
-# Regular Expression Search
-# ============================================================ #
-
-class PercolFinderANDRegex(PercolFinderAND):
-    def find_all(self, needle, haystack):
-        try:
-            return [(m.start(), m.end() - m.start()) for m in re.finditer(needle, haystack)]
-        except:
-            return None
