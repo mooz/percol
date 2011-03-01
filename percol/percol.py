@@ -86,7 +86,8 @@ class Percol:
         self.collection = self.stdin.read().split("\n")
         # self.collection = re.split("(?<!\\\\)\n", self.stdin.read())
 
-        self.finder = PercolFinderStringAnd(self.collection)
+        # self.finder = PercolFinderANDString(self.collection)
+        self.finder = PercolFinderANDRegex(self.collection)
 
         self.target = target
 
@@ -254,7 +255,7 @@ class Percol:
                 pass
 
     def display_result(self, y, result, is_current = False, is_marked = False):
-        line, pairs = result
+        line, find_info = result
 
         if is_current:
             line_style = curses.color_pair(self.colors["selected_line"])
@@ -271,12 +272,11 @@ class Percol:
 
         self.display_line(y, 0, line, color = line_style)
 
-        for q, x_offsets in pairs:
-            q_len = len(q)
-            for x_offset in x_offsets:
+        for (subq, match_info) in find_info:
+            for x_offset, subq_len in match_info:
                 try:
                     self.screen.addnstr(y, x_offset,
-                                        line[x_offset:x_offset + q_len],
+                                        line[x_offset:x_offset + subq_len],
                                         self.WIDTH - x_offset,
                                         keyword_style)
                 except curses.error as e:
@@ -382,7 +382,7 @@ class Percol:
         # page
         KEY_CTRL_V    : select_next_page,
         # mark
-        KEY_CTRL_SPC  : lambda: (toggle_mark(), select_next()),
+        KEY_CTRL_SPC  : lambda self: (self.toggle_mark(), self.select_next()),
         # finish
         KEY_ENTER     : finish,
         KEY_CTRL_M    : finish,
@@ -424,7 +424,7 @@ class Percol:
             self.get_more_results(count = needed_count)
 
 # ============================================================ #
-# Find
+# Finder
 # ============================================================ #
 
 import abc
@@ -436,35 +436,62 @@ class PercolFinder(object):
     def find(self, query):
         pass
 
-class PercolFinderStringAnd(PercolFinder):
-    def __init__(self, collection):
-        self.collection = collection
+# ============================================================ #
+# Finder > AND search
+# ============================================================ #
 
-    # @implements
+class PercolFinderAND(PercolFinder):
+    def __init__(self, collection, split_str = " ", split_re = None):
+        self.collection = collection
+        self.split_str  = split_str
+        self.split_re   = split_re
+
+    def dummy_res(self, query = ""):
+        return [[query, [(0, 0)]]]
+
     def find(self, query):
+        query_is_empty = query == ""
+        use_re = not self.split_re is None
+
         for line in self.collection:
-            res = self.and_find(query.split(" "), line)
+            if query_is_empty:
+                res = self.dummy_res(query)
+            else:
+                if use_re:
+                    queries = re.split(self.split_re, line)
+                else:
+                    queries = query.split(self.split_str)
+                res = self.and_find(queries, line)
 
             if res:
                 yield line, res
 
-    def and_find(self, queries, line):
+    def and_find(self, sub_queries, line):
         res = []
 
-        for q in queries:
-            if not q in line:
-                return None
-            else:
-                res.append((q, self.find_all(q, line)))
+        for subq in sub_queries:
+            if subq != "":
+                find_info = self.find_all(subq, line)
+                if find_info:
+                    res.append((subq, find_info))
 
         return res
 
+    # @abstract
+    def find_all(self, needle, haystack):
+        # return [(pos1, pos1_len), (pos2, pos2_len), ...]
+        #
+        # where `pos1', `pos2', ... are begining positions of all occurence of needle in `haystack'
+        # and `pos1_len', `pos2_len', ... are its length.
+        pass
+
+# ============================================================ #
+# Simple AND search
+# ============================================================ #
+
+class PercolFinderANDString(PercolFinderAND):
     def find_all(self, needle, haystack):
         stride = len(needle)
-
-        if stride == 0:
-            return [0]
-
         start  = 0
         res    = []
 
@@ -472,7 +499,18 @@ class PercolFinderStringAnd(PercolFinder):
             found = haystack.find(needle, start)
             if found < 0:
                 break
-            res.append(found)
+            res.append((found, stride))
             start = found + stride
 
         return res
+
+# ============================================================ #
+# Regular Expression Search
+# ============================================================ #
+
+class PercolFinderANDRegex(PercolFinderAND):
+    def find_all(self, needle, haystack):
+        try:
+            return [(m.start(), m.end() - m.start()) for m in re.finditer(needle, haystack)]
+        except:
+            return None
