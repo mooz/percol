@@ -2,16 +2,25 @@
 
 percol adds flavor of interactive selection to the traditional pipe concept on UNIX
 
+## Installation
+
+    $ git clone git://github.com/mooz/percol.git
+    $ ln -s percol/percol/main.py /usr/local/bin/percol
+
 ## Example
 
 ### zsh history search
 
 In your `.zshrc`, put the lines below.
 
-    which percol > /dev/null
-    if [ $0 ]; then
+    function exists { which $1 &> /dev/null }
+    
+    if exists percol; then
         function percol_select_history() {
-            BUFFER="`tac $HISTFILE | percol`"
+            local tac
+            exists gtac && tac=gtac || tac=tac
+            BUFFER="`$tac $HISTFILE | percol`"
+            CURSOR=$#BUFFER         # move cursor
             zle -R -c               # refresh
         }
     
