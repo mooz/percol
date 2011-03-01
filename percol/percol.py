@@ -97,7 +97,7 @@ class Percol:
 
     @property
     def total_page_number(self):
-        return max(int(math.ceil(1.0 * self.status["rows"] / self.RESULTS_DISPLAY_MAX)), 1)
+        return max(int(math.ceil(1.0 * self.results_count / self.RESULTS_DISPLAY_MAX)), 1)
 
     @property
     def absolute_index(self):
@@ -111,6 +111,14 @@ class Percol:
     def absolute_page_tail(self):
         return self.absolute_page_head + self.RESULTS_DISPLAY_MAX
 
+    @property
+    def results_count(self):
+        return len(self.status["results"])
+
+    @property
+    def needed_count(self):
+        return self.total_page_number * self.RESULTS_DISPLAY_MAX - self.results_count
+
     def init_display(self):
         self.update_screen_size()
         self.do_search("")
@@ -119,7 +127,6 @@ class Percol:
     def loop(self):
         self.status = {
             "index"             : 0,
-            "rows "             : 0,
             "marks"             : None,
             "query"             : None,
             # result
@@ -152,6 +159,10 @@ class Percol:
 
         if self.results_cache.has_key(query):
             self.status["results"], self.status["results_generator"] = self.results_cache[query]
+            # we have to check the cache is complete or not
+            needed_count = self.needed_count
+            if needed_count > 0:
+                self.get_more_results(count = needed_count)
         else:
             self.status["results_generator"] = self.search(query)
             self.status["results"] = [result for result
@@ -159,9 +170,7 @@ class Percol:
             # cache results and generator
             self.results_cache[query] = self.status["results"], self.status["results_generator"]
 
-        results_count        = len(self.status["results"])
-        self.status["marks"] = [False] * results_count
-        self.status["rows"]  = results_count
+        self.status["marks"] = [False] * self.results_count
 
     def get_more_results(self, count = None):
         if count is None:
@@ -173,7 +182,6 @@ class Percol:
         if got_results_count > 0:
             self.status["results"].extend(results)
             self.status["marks"].extend([False] * got_results_count)
-            self.status["rows"] += got_results_count
 
         return got_results_count
 
@@ -238,6 +246,7 @@ class Percol:
                                         keyword_style)
                 except curses.error as e:
                     log("addnstr", str(e) + " ({0})".format(y))
+                    pass
 
     def display_results(self):
         voffset = self.RESULT_OFFSET_Y
@@ -286,12 +295,12 @@ class Percol:
         CTRL_P    = 16
 
         def select_next():
-            if self.status["index"] + 1 >= self.status["rows"]:
+            if self.status["index"] + 1 >= self.results_count:
                 self.get_more_results()
-            self.status["index"] = (self.status["index"] + 1) % self.status["rows"]
+            self.status["index"] = (self.status["index"] + 1) % self.results_count
 
         def select_previous():
-            self.status["index"] = (self.status["index"] - 1) % self.status["rows"]
+            self.status["index"] = (self.status["index"] - 1) % self.results_count
 
         def toggle_mark():
             self.status["marks"][self.status["index"]] ^= True
@@ -351,9 +360,9 @@ class Percol:
         self.update_screen_size()
 
         # get results
-        needed_count = self.total_page_number * self.RESULTS_DISPLAY_MAX - self.status["rows"]
+        needed_count = self.needed_count
         if needed_count > 0:
-            self.get_more_results(needed_count)
+            self.get_more_results(count = needed_count)
 
     # ============================================================ #
     # Find
