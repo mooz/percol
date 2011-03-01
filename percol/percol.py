@@ -93,6 +93,10 @@ class Percol:
     def update_screen_size(self):
         self.HEIGHT, self.WIDTH = self.screen.getmaxyx()
 
+    # ============================================================ #
+    # Pager attributes
+    # ============================================================ #
+
     @property
     def RESULTS_DISPLAY_MAX(self):
         return self.HEIGHT - 1
@@ -125,10 +129,9 @@ class Percol:
     def needed_count(self):
         return self.total_page_number * self.RESULTS_DISPLAY_MAX - self.results_count
 
-    def init_display(self):
-        self.update_screen_size()
-        self.do_search("")
-        self.refresh_display()
+    # ============================================================ #
+    # Main Loop
+    # ============================================================ #
 
     def loop(self):
         self.status = {
@@ -159,6 +162,15 @@ class Percol:
                 self.refresh_display()
             except TerminateLoop as e:
                 break
+
+    def init_display(self):
+        self.update_screen_size()
+        self.do_search("")
+        self.refresh_display()
+
+    # ============================================================ #
+    # Result handling
+    # ============================================================ #
 
     def do_search(self, query):
         self.status["index"] = 0
@@ -191,12 +203,6 @@ class Percol:
 
         return got_results_count
 
-    def refresh_display(self):
-        self.screen.erase()
-        self.display_results()
-        self.display_prompt()
-        self.screen.refresh()
-
     def get_result(self, index):
         results = self.status["results"]
 
@@ -207,6 +213,16 @@ class Percol:
 
     def get_selected_result(self):
         return self.get_result(self.status["index"])
+
+    # ============================================================ #
+    # Display
+    # ============================================================ #
+
+    def refresh_display(self):
+        self.screen.erase()
+        self.display_results()
+        self.display_prompt()
+        self.screen.refresh()
 
     def display_line(self, y, x, s, color = None):
         if color is None:
@@ -268,21 +284,17 @@ class Percol:
             except curses.error as e:
                 debug.log("display_results", str(e))
 
-    # @property
-    # def RESULT_OFFSET_V(self):
-    #     return 0
-
-    # @property
-    # def PROMPT_OFFSET_V(self):
-    #     return self.RESULTS_DISPLAY_MAX
+    # ============================================================ #
+    # Prompt
+    # ============================================================ #
 
     @property
     def RESULT_OFFSET_V(self):
-        return 1
+        return 1                        # 0
 
     @property
     def PROMPT_OFFSET_V(self):
-        return 0
+        return 0                        # self.RESULTS_DISPLAY_MAX
 
     PROMPT  = "QUERY> %q"
     RPROMPT = "(%i/%I) [%n/%N]"
@@ -327,8 +339,18 @@ class Percol:
         return re.sub(r'%([a-zA-Z%])', formatter, s)
 
     # ============================================================ #
-    # Commands {{
+    # Commands
     # ============================================================ #
+
+    # ------------------------------------------------------------ #
+    #  Selections
+    # ------------------------------------------------------------ #
+
+    def select_index(self, idx):
+        if idx >= self.results_count:
+            self.get_more_results()
+
+        self.status["index"] = idx % self.results_count
 
     def select_next(self, k):
         self.select_index(self.status["index"] + 1)
@@ -348,6 +370,10 @@ class Percol:
     def select_bottom(self, k):
         self.select_index(self.results_count - 1)
 
+    # ------------------------------------------------------------ #
+    # Mark
+    # ------------------------------------------------------------ #
+
     def toggle_mark(self, k):
         self.status["marks"][self.status["index"]] ^= True
 
@@ -355,11 +381,22 @@ class Percol:
         self.toggle_mark(k)
         self.select_next(k)
 
+    # ------------------------------------------------------------ #
+    # Text
+    # ------------------------------------------------------------ #
+
+    def append_char_to_query(self, ch):
+        self.status["query"] += chr(ch)
+
     def delete_backward_char(self, k):
         self.status["query"] = self.status["query"][:-1]
 
     def clear_query(self, k):
         self.status["query"] = ""
+
+    # ------------------------------------------------------------ #
+    # Finish / Cancel
+    # ------------------------------------------------------------ #
 
     def finish(self, k):
         any_marked = False
@@ -382,14 +419,8 @@ class Percol:
         raise TerminateLoop("Canceled")
 
     # ============================================================ #
-    # Commands }}
+    # Key Handling
     # ============================================================ #
-
-    def select_index(self, idx):
-        if idx >= self.results_count:
-            self.get_more_results()
-
-        self.status["index"] = idx % self.results_count
 
     keymap = {
         # text
@@ -415,9 +446,6 @@ class Percol:
         "C-c"   : cancel
     }
 
-    def append_char_to_query(self, ch):
-        self.status["query"] += chr(ch)
-
     def handle_key(self, ch):
         if self.keyhandler.is_displayable_key(ch):
             self.append_char_to_query(ch)
@@ -441,3 +469,11 @@ class Percol:
         needed_count = self.needed_count
         if needed_count > 0:
             self.get_more_results(count = needed_count)
+
+    # ============================================================ #
+    # Actions
+    # ============================================================ #
+
+    @property
+    def selected_action(self):
+        pass
