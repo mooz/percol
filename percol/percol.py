@@ -207,24 +207,25 @@ class Percol:
         line, pairs = result
 
         if is_current:
-            line_color = curses.color_pair(self.colors["selected_line"])
+            line_style = curses.color_pair(self.colors["selected_line"])
+        elif is_marked:
+            line_style = curses.color_pair(self.colors["marked_line"])
         else:
-            if is_marked:
-                line_color = curses.color_pair(self.colors["marked_line"])
-            else:
-                line_color = curses.color_pair(self.colors["normal_line"])
+            line_style = curses.color_pair(self.colors["normal_line"])
 
-        keyword_color = curses.color_pair(self.colors["keyword"])
+        keyword_style = curses.A_BOLD
+        if is_current or is_marked:
+            keyword_style |= line_style
+        else:
+            keyword_style |= curses.color_pair(self.colors["keyword"])
 
-        self.display_line(y, 0, line, color = line_color)
+        self.display_line(y, 0, line, color = line_style)
 
-        # highlight not-selected lines only
-        if not is_current:
-            for q, x_offsets in pairs:
-                q_len = len(q)
-                for x_offset in x_offsets:
-                    self.screen.addnstr(y, x_offset, line[x_offset:x_offset + q_len],
-                                        self.WIDTH - x_offset, keyword_color)
+        for q, x_offsets in pairs:
+            q_len = len(q)
+            for x_offset in x_offsets:
+                self.screen.addnstr(y, x_offset, line[x_offset:x_offset + q_len],
+                                    self.WIDTH - x_offset, keyword_style)
 
     def display_results(self):
         voffset = self.RESULT_OFFSET_Y
