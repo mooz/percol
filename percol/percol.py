@@ -234,7 +234,7 @@ class Percol:
                                         self.WIDTH - x_offset,
                                         keyword_style)
                 except curses.error as e:
-                    log("addnstr", e.message + " ({0})".format(y))
+                    log("addnstr", str(e) + " ({0})".format(y))
 
     def display_results(self):
         voffset = self.RESULT_OFFSET_Y
@@ -249,7 +249,7 @@ class Percol:
                                     is_current = pos == self.status["index"],
                                     is_marked = self.status["marks"][pos])
             except curses.error as e:
-                log("display_results", e.message)
+                log("display_results", str(e))
 
     def display_prompt(self, query = None):
         if query is None:
