@@ -42,7 +42,7 @@ class Percol:
         "keyword"       : 4,
     }
 
-    def __init__(self, target = None, collection = None, finder = None):
+    def __init__(self, target = None, collection = None, finder = None, actions = None):
         if target:
             self.stdin  = target["stdin"]
             self.stdout = target["stdout"]
@@ -326,14 +326,8 @@ class Percol:
 
         return re.sub(r'%([a-zA-Z%])', formatter, s)
 
-    def select_index(self, idx):
-        if idx >= self.results_count:
-            self.get_more_results()
-
-        self.status["index"] = idx % self.results_count
-
     # ============================================================ #
-    # Actions {{
+    # Commands {{
     # ============================================================ #
 
     def select_next(self, k):
@@ -357,6 +351,16 @@ class Percol:
     def toggle_mark(self, k):
         self.status["marks"][self.status["index"]] ^= True
 
+    def toggle_mark_and_next(self, k):
+        self.toggle_mark(k)
+        self.select_next(k)
+
+    def delete_backward_char(self, k):
+        self.status["query"] = self.status["query"][:-1]
+
+    def clear_query(self, k):
+        self.status["query"] = ""
+
     def finish(self, k):
         any_marked = False
 
@@ -377,15 +381,15 @@ class Percol:
     def cancel(self, k):
         raise TerminateLoop("Canceled")
 
-    def delete_backward_char(self, k):
-        self.status["query"] = self.status["query"][:-1]
-
-    def clear_query(self, k):
-        self.status["query"] = ""
-
     # ============================================================ #
-    # Actions }}
+    # Commands }}
     # ============================================================ #
+
+    def select_index(self, idx):
+        if idx >= self.results_count:
+            self.get_more_results()
+
+        self.status["index"] = idx % self.results_count
 
     keymap = {
         # text
@@ -401,7 +405,7 @@ class Percol:
         "M-<"   : select_top,
         "M->"   : select_bottom,
         # mark
-        "C-SPC" : lambda self, k: (self.toggle_mark(k), self.select_next(k)),
+        "C-SPC" : toggle_mark_and_next,
         # finish
         "RET"   : finish,
         "C-m"   : finish,       # XXX: C-m cannot be handled? (seems to be interpreted as C-j)
