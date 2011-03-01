@@ -20,6 +20,7 @@ import sys
 import signal
 import curses
 import math
+import re
 
 from itertools import islice
 
@@ -50,6 +51,8 @@ class Percol:
         self.stderr = target["stderr"]
 
         self.collection = self.stdin.read().split("\n")
+        # self.collection = re.split("(?<!\\\\)\n", self.stdin.read())
+
         self.target = target
 
         self.output_buffer = []
