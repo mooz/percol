@@ -88,6 +88,26 @@ class Percol:
     def RESULTS_DISPLAY_MAX(self):
         return self.HEIGHT - 1
 
+    @property
+    def page_number(self):
+        return int(self.status["index"] / self.RESULTS_DISPLAY_MAX) + 1
+
+    @property
+    def total_page_number(self):
+        return max(int(math.ceil(1.0 * self.status["rows"] / self.RESULTS_DISPLAY_MAX)), 1)
+
+    @property
+    def absolute_index(self):
+        return self.status["index"]
+
+    @property
+    def absolute_page_head(self):
+        return self.RESULTS_DISPLAY_MAX * int(self.absolute_index / self.RESULTS_DISPLAY_MAX)
+
+    @property
+    def absolute_page_tail(self):
+        return self.absolute_page_head + self.RESULTS_DISPLAY_MAX
+
     def init_display(self):
         self.update_screen_size()
         self.do_search("")
@@ -209,9 +229,8 @@ class Percol:
     def display_results(self):
         voffset = self.RESULT_OFFSET_Y
 
-        abs_idx  = self.status["index"]
-        abs_head = self.RESULTS_DISPLAY_MAX * int(abs_idx / self.RESULTS_DISPLAY_MAX)
-        abs_tail = abs_head + self.RESULTS_DISPLAY_MAX
+        abs_head = self.absolute_page_head
+        abs_tail = self.absolute_page_tail
 
         for pos, result in islice(enumerate(self.status["results"]), abs_head, abs_tail):
             rel_pos = pos - abs_head
@@ -234,9 +253,7 @@ class Percol:
             pass
 
         # display page number
-        page_n       = int(self.status["index"] / self.RESULTS_DISPLAY_MAX) + 1
-        total_page_n = max(int(math.ceil(self.status["rows"] / self.RESULTS_DISPLAY_MAX)), 1)
-        rprompt      = "[{0}/{1}]".format(page_n, total_page_n)
+        rprompt = "[{0}/{1}]".format(self.page_number, self.total_page_number)
         self.screen.addnstr(0, self.WIDTH - len(rprompt), rprompt, len(rprompt))
 
         # move caret to the prompt
@@ -306,8 +323,7 @@ class Percol:
             if 32 <= ch <= 126:
                 self.status["query"] += chr(ch)
             elif ch == curses.KEY_RESIZE:
-                # resize
-                self.update_screen_size()
+                self.handle_resize()
             else:
                 self.status["query"] = self.handle_special(self.status["query"], ch)
         except ValueError:
@@ -315,6 +331,15 @@ class Percol:
 
         # DEBUG: display key code
         self.screen.addnstr(0, 30, "<keycode: {0}>".format(ch), self.WIDTH)
+
+    def handle_resize(self):
+        # resize
+        self.update_screen_size()
+
+        # get results
+        needed_count = self.total_page_number * self.RESULTS_DISPLAY_MAX - self.status["rows"]
+        if needed_count > 0:
+            self.get_more_results(needed_count)
 
     # ============================================================ #
     # Find
