@@ -86,6 +86,8 @@ class Percol:
         self.collection = self.stdin.read().split("\n")
         # self.collection = re.split("(?<!\\\\)\n", self.stdin.read())
 
+        self.finder = PercolFinderStringAnd(self.collection)
+
         self.target = target
 
         self.output_buffer = []
@@ -197,7 +199,7 @@ class Percol:
             if needed_count > 0:
                 self.get_more_results(count = needed_count)
         else:
-            self.status["results_generator"] = self.search(query)
+            self.status["results_generator"] = self.finder.find(query)
             self.status["results"] = [result for result
                                       in islice(self.status["results_generator"], self.RESULTS_DISPLAY_MAX)]
             # cache results and generator
@@ -421,9 +423,41 @@ class Percol:
         if needed_count > 0:
             self.get_more_results(count = needed_count)
 
-    # ============================================================ #
-    # Find
-    # ============================================================ #
+# ============================================================ #
+# Find
+# ============================================================ #
+
+import abc
+
+class PercolFinder(object):
+    __metaclass__ = abc.ABCMeta
+
+    @abc.abstractmethod
+    def find(self, query):
+        pass
+
+class PercolFinderStringAnd(PercolFinder):
+    def __init__(self, collection):
+        self.collection = collection
+
+    # @implements
+    def find(self, query):
+        for line in self.collection:
+            res = self.and_find(query.split(" "), line)
+
+            if res:
+                yield line, res
+
+    def and_find(self, queries, line):
+        res = []
+
+        for q in queries:
+            if not q in line:
+                return None
+            else:
+                res.append((q, self.find_all(q, line)))
+
+        return res
 
     def find_all(self, needle, haystack):
         stride = len(needle)
@@ -442,21 +476,3 @@ class Percol:
             start = found + stride
 
         return res
-
-    def and_find(self, queries, line):
-        res = []
-
-        for q in queries:
-            if not q in line:
-                return None
-            else:
-                res.append((q, self.find_all(q, line)))
-
-        return res
-
-    def search(self, query):
-        for line in self.collection:
-            res = self.and_find(query.split(" "), line)
-
-            if res:
-                yield line, res
