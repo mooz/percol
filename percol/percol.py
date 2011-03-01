@@ -393,10 +393,16 @@ class Percol:
         if self.keymap.has_key(ch):
             self.keymap[ch](self)
 
+    def is_displayable_key(self, ch):
+        return 32 <= ch <= 126
+
+    def handle_displayable(self, ch):
+        self.status["query"] += chr(ch)
+
     def handle_key(self, ch):
         try:
-            if 32 <= ch <= 126:
-                self.status["query"] += chr(ch)
+            if self.is_displayable_key(ch):
+                self.handle_displayable(ch)
             elif ch == curses.KEY_RESIZE:
                 self.handle_resize()
             else:
@@ -404,8 +410,7 @@ class Percol:
         except ValueError:
             pass
 
-        # DEBUG: display key code
-        self.screen.addnstr(0, 30, "<keycode: {0}>".format(ch), self.WIDTH)
+        log("keycode", str(ch))
 
     def handle_resize(self):
         # resize
