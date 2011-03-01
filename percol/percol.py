@@ -42,8 +42,6 @@ class Percol:
         "keyword"       : 4,
     }
 
-    RESULT_OFFSET_Y = 1
-
     def __init__(self, target = None, collection = None, finder = None):
         if target:
             self.stdin  = target["stdin"]
@@ -256,7 +254,7 @@ class Percol:
                     pass
 
     def display_results(self):
-        voffset = self.RESULT_OFFSET_Y
+        voffset = self.RESULT_OFFSET_V
 
         abs_head = self.absolute_page_head
         abs_tail = self.absolute_page_tail
@@ -270,23 +268,63 @@ class Percol:
             except curses.error as e:
                 debug.log("display_results", str(e))
 
-    def display_prompt(self, query = None):
-        if query is None:
-            query = self.status["query"]
+    # @property
+    # def RESULT_OFFSET_V(self):
+    #     return 0
 
-        # display prompt
+    # @property
+    # def PROMPT_OFFSET_V(self):
+    #     return self.RESULTS_DISPLAY_MAX
+
+    @property
+    def RESULT_OFFSET_V(self):
+        return 1
+
+    @property
+    def PROMPT_OFFSET_V(self):
+        return 0
+
+    PROMPT  = "QUERY> %q"
+    RPROMPT = "(%i/%I) [%n/%N]"
+
+    def display_prompt(self):
+        prompt  = self.format_prompt_string(self.PROMPT)
+        rprompt = self.format_prompt_string(self.RPROMPT)
+
         try:
-            prompt_str = "QUERY> " + query
-            self.screen.addnstr(0, 0, prompt_str, self.WIDTH)
+            self.screen.addnstr(self.PROMPT_OFFSET_V, self.WIDTH - len(rprompt), rprompt, len(rprompt))
         except curses.error:
             pass
 
-        # display page number
-        rprompt = "[{0}/{1}]".format(self.page_number, self.total_page_number)
-        self.screen.addnstr(0, self.WIDTH - len(rprompt), rprompt, len(rprompt))
+        try:
+            self.screen.addnstr(self.PROMPT_OFFSET_V, 0, prompt, self.WIDTH)
+        except curses.error:
+            pass
 
-        # move caret to the prompt
-        self.screen.move(0, len(prompt_str))
+        try:
+            # move caret to the prompt
+            self.screen.move(self.PROMPT_OFFSET_V, len(prompt))
+        except curses.error:
+            pass
+
+    prompt_replacees = {
+        "%" : lambda self: "%",
+        "q" : lambda self: self.status["query"],
+        "n" : lambda self: self.page_number,
+        "N" : lambda self: self.total_page_number,
+        "i" : lambda self: self.absolute_index + 1,
+        "I" : lambda self: self.results_count
+    }
+
+    def format_prompt_string(self, s):
+        def formatter(matchobj):
+            al = matchobj.group(1)
+            if self.prompt_replacees.has_key(al):
+                return str(self.prompt_replacees[al](self))
+            else:
+                return ""
+
+        return re.sub(r'%([a-zA-Z%])', formatter, s)
 
     def select_index(self, idx):
         if idx >= self.results_count:
@@ -383,7 +421,7 @@ class Percol:
         else:
             k = self.keyhandler.get_key_for(ch)
 
-            debug.log("key", k)
+            # debug.log("key", k)
 
             if self.keymap.has_key(k):
                 self.keymap[k](self, k)
