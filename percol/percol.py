@@ -24,42 +24,7 @@ import re
 
 from itertools import islice
 
-KEY_ENTER     = 10
-KEY_DELETE    = 126
-KEY_BACKSPACE = 127
-
-KEY_CTRL_SPC  = 0
-
-KEY_CTRL_A = 1
-KEY_CTRL_B = 2
-KEY_CTRL_C = 3
-KEY_CTRL_D = 4
-KEY_CTRL_E = 5
-KEY_CTRL_F = 6
-KEY_CTRL_G = 7
-KEY_CTRL_H = 8
-KEY_CTRL_I = 9
-KEY_CTRL_J = 10
-KEY_CTRL_K = 11
-KEY_CTRL_L = 12
-KEY_CTRL_M = 13
-KEY_CTRL_N = 14
-KEY_CTRL_O = 15
-KEY_CTRL_P = 16
-KEY_CTRL_Q = 17
-KEY_CTRL_R = 18
-KEY_CTRL_S = 19
-KEY_CTRL_T = 20
-KEY_CTRL_U = 21
-KEY_CTRL_V = 22
-KEY_CTRL_W = 23
-KEY_CTRL_X = 24
-KEY_CTRL_Y = 25
-KEY_CTRL_Z = 26
-
-def log(name, s = ""):
-    with open("/tmp/percol-log", "a") as f:
-        f.write(name + " : " + str(s) + "\n")
+import key, debug
 
 class TerminateLoop(Exception):
     def __init__(self, value):
@@ -78,23 +43,27 @@ class Percol:
 
     RESULT_OFFSET_Y = 1
 
-    def __init__(self, target):
-        self.stdin  = target["stdin"]
-        self.stdout = target["stdout"]
-        self.stderr = target["stderr"]
+    def __init__(self, target = None, collection = None, finder = None):
+        if target:
+            self.stdin  = target["stdin"]
+            self.stdout = target["stdout"]
+            self.stderr = target["stderr"]
+        else:
+            self.stdin  = sys.stdin
+            self.stdout = sys.stdout
+            self.stderr = sys.stderr
 
-        self.collection = self.stdin.read().split("\n")
-        # self.collection = re.split("(?<!\\\\)\n", self.stdin.read())
+        if collection is None:
+            self.collection = self.stdin.read().split("\n")
+            # self.collection = re.split("(?<!\\\\)\n", self.stdin.read())
 
-        # self.finder = PercolFinderANDString(self.collection)
-        self.finder = PercolFinderANDRegex(self.collection)
-
-        self.target = target
-
-        self.output_buffer = []
+        if finder is None:
+            self.finder = PercolFinderANDString(self.collection)
+            # self.finder = PercolFinderANDRegex(self.collection)
 
     def __enter__(self):
-        self.screen = curses.initscr()
+        self.screen     = curses.initscr()
+        self.keyhandler = key.KeyHandler(self.screen)
 
         curses.start_color()
         # foreground, background
@@ -113,9 +82,11 @@ class Percol:
     def __exit__(self, exc_type, exc_value, traceback):
         curses.endwin()
 
-        if self.stdout:
+        # XXX: make this action customizable
+        for s in self.output_buffer:
             self.stdout.write("".join(self.output_buffer))
 
+    output_buffer = []
     def output(self, s):
         # delay actual output (wait curses to finish)
         self.output_buffer.append(s)
@@ -280,7 +251,7 @@ class Percol:
                                         self.WIDTH - x_offset,
                                         keyword_style)
                 except curses.error as e:
-                    log("addnstr", str(e) + " ({0})".format(y))
+                    debug.log("addnstr", str(e) + " ({0})".format(y))
                     pass
 
     def display_results(self):
@@ -296,7 +267,7 @@ class Percol:
                                     is_current = pos == self.status["index"],
                                     is_marked = self.status["marks"][pos])
             except curses.error as e:
-                log("display_results", str(e))
+                debug.log("display_results", str(e))
 
     def display_prompt(self, query = None):
         if query is None:
@@ -326,22 +297,28 @@ class Percol:
     # Actions {{
     # ============================================================ #
 
-    def select_next(self):
+    def select_next(self, k):
         self.select_index(self.status["index"] + 1)
 
-    def select_previous(self):
+    def select_previous(self, k):
         self.select_index(self.status["index"] - 1)
 
-    def select_next_page(self):
+    def select_next_page(self, k):
         self.select_index(self.status["index"] + self.RESULTS_DISPLAY_MAX)
 
-    def select_previous_page(self):
+    def select_previous_page(self, k):
         self.select_index(self.status["index"] - self.RESULTS_DISPLAY_MAX)
 
-    def toggle_mark(self):
+    def select_top(self, k):
+        self.select_index(0)
+
+    def select_bottom(self, k):
+        self.select_index(self.results_count - 1)
+
+    def toggle_mark(self, k):
         self.status["marks"][self.status["index"]] ^= True
 
-    def finish(self):
+    def finish(self, k):
         any_marked = False
 
         # TODO: make this action customizable
@@ -358,13 +335,13 @@ class Percol:
 
         raise TerminateLoop("Finished")
 
-    def cancel(self):
+    def cancel(self, k):
         raise TerminateLoop("Canceled")
 
-    def delete_backward_char(self):
+    def delete_backward_char(self, k):
         self.status["query"] = self.status["query"][:-1]
 
-    def clear_query(self):
+    def clear_query(self, k):
         self.status["query"] = ""
 
     # ============================================================ #
@@ -373,46 +350,44 @@ class Percol:
 
     keymap = {
         # text
-        KEY_CTRL_A    : clear_query,
-        KEY_BACKSPACE : delete_backward_char,
-        KEY_CTRL_H    : delete_backward_char,
+        "C-a"   : clear_query,
+        "C-h"   : delete_backward_char,
         # line
-        KEY_CTRL_N    : select_next,
-        KEY_CTRL_P    : select_previous,
+        "C-n"   : select_next,
+        "C-p"   : select_previous,
         # page
-        KEY_CTRL_V    : select_next_page,
+        "C-v"   : select_next_page,
+        "M-v"   : select_previous_page,
+        # top / bottom
+        "M-<"   : select_top,
+        "M->"   : select_bottom,
         # mark
-        KEY_CTRL_SPC  : lambda self: (self.toggle_mark(), self.select_next()),
+        "C-SPC" : lambda self, k: (self.toggle_mark(k), self.select_next(k)),
         # finish
-        KEY_ENTER     : finish,
-        KEY_CTRL_M    : finish,
+        "RET"   : finish,
+        "C-m"   : finish,
         # cancel
-        KEY_CTRL_G    : cancel,
-        -1            : cancel
+        "C-g"   : cancel,
+        "C-c"   : cancel
     }
 
-    def handle_special(self, ch):
-        if self.keymap.has_key(ch):
-            self.keymap[ch](self)
-
-    def is_displayable_key(self, ch):
-        return 32 <= ch <= 126
-
-    def handle_displayable(self, ch):
+    def append_char_to_query(self, ch):
         self.status["query"] += chr(ch)
 
     def handle_key(self, ch):
-        try:
-            if self.is_displayable_key(ch):
-                self.handle_displayable(ch)
-            elif ch == curses.KEY_RESIZE:
-                self.handle_resize()
-            else:
-                self.handle_special(ch)
-        except ValueError:
-            pass
+        if self.keyhandler.is_displayable_key(ch):
+            self.append_char_to_query(ch)
+        elif ch == curses.KEY_RESIZE:
+            self.handle_resize()
+        else:
+            k = self.keyhandler.get_key_for(ch)
 
-        log("keycode", str(ch))
+            debug.log("key", k)
+
+            if self.keymap.has_key(k):
+                self.keymap[k](self, k)
+            else:
+                pass                    # undefined key
 
     def handle_resize(self):
         # resize
