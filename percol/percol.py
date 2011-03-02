@@ -352,7 +352,8 @@ class Percol:
         if idx >= self.results_count:
             self.get_more_results()
 
-        self.status["index"] = idx % self.results_count
+        if self.results_count > 0:
+            self.status["index"] = idx % self.results_count
 
     def select_next(self, k):
         self.select_index(self.status["index"] + 1)
