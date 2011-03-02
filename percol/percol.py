@@ -326,7 +326,7 @@ class Percol:
         "q" : lambda self: self.status["query"],
         "n" : lambda self: self.page_number,
         "N" : lambda self: self.total_page_number,
-        "i" : lambda self: self.absolute_index + 1,
+        "i" : lambda self: self.absolute_index + (1 if self.results_count > 0 else 0),
         "I" : lambda self: self.results_count
     }
 
