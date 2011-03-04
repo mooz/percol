@@ -140,6 +140,7 @@ class Percol:
             "index"             : 0,
             "marks"             : None,
             "query"             : None,
+            "caret"             : 0,
             # result
             "results"           : None,
             "results_generator" : None,
@@ -301,40 +302,76 @@ class Percol:
     PROMPT  = "QUERY> %q"
     RPROMPT = "(%i/%I) [%n/%N]"
 
+    def display_caret_to_prompt(self, y, x, prompt):
+        pos = prompt.find(self.CARET_FORMAT)
+        if (pos >= 0):
+            prompt = prompt.replace(self.CARET_FORMAT, "")
+
+        pos = re.search("^[^]", prompt)
+        q_offset = self.PROMPT.find("%q")
+
     def display_prompt(self):
-        prompt  = self.format_prompt_string(self.PROMPT)
-        rprompt = self.format_prompt_string(self.RPROMPT)
+        # display underline
+        style = curses.color_pair(self.colors["normal_line"]) | curses.A_UNDERLINE
+        self.screen.addnstr(self.PROMPT_OFFSET_V, 0, " " * self.WIDTH, self.WIDTH, style)
+
+        caret_x = -1
+        caret_y = -1
 
         try:
-            self.screen.addnstr(self.PROMPT_OFFSET_V, self.WIDTH - len(rprompt), rprompt, len(rprompt))
+            rprompt = self.format_prompt_string(self.RPROMPT)
+            self.screen.addnstr(self.PROMPT_OFFSET_V, self.WIDTH - len(rprompt), rprompt, len(rprompt), style)
+            # when %q is specified, record its position
+            if self.last_query_position >= 0:
+                caret_x = self.WIDTH - len(rprompt) + self.last_query_position
+                caret_y = self.PROMPT_OFFSET_V
         except curses.error:
             pass
 
         try:
-            self.screen.addnstr(self.PROMPT_OFFSET_V, 0, prompt, self.WIDTH)
+            prompt = self.format_prompt_string(self.PROMPT)
+            self.screen.addnstr(self.PROMPT_OFFSET_V, 0, prompt, self.WIDTH, style)
+            # when %q is specified, record its position
+            if self.last_query_position >= 0:
+                caret_x = self.last_query_position
+                caret_y = self.PROMPT_OFFSET_V
         except curses.error:
             pass
 
         try:
-            # move caret to the prompt
-            self.screen.move(self.PROMPT_OFFSET_V, len(prompt))
+            # move caret
+            if caret_x >= 0 and caret_y >= 0:
+                self.screen.move(caret_y, caret_x + self.status["caret"])
         except curses.error:
             pass
+
+    last_query_position = -1
+
+    def handle_format_prompt_query(self, matchobj):
+        # -1 is from first '%' of %([a-zA-Z%])
+        self.last_query_position = matchobj.start(1) - 1
+        return self.status["query"]
 
     prompt_replacees = {
-        "%" : lambda self: "%",
-        "q" : lambda self: self.status["query"],
-        "n" : lambda self: self.page_number,
-        "N" : lambda self: self.total_page_number,
-        "i" : lambda self: self.absolute_index + (1 if self.results_count > 0 else 0),
-        "I" : lambda self: self.results_count
+        "%" : lambda self, matchobj: "%",
+        # display query and caret
+        "q" : lambda self, matchobj: self.handle_format_prompt_query(matchobj),
+        # display query but does not display caret
+        "Q" : lambda self, matchobj: self.status["query"],
+        "n" : lambda self, matchobj: self.page_number,
+        "N" : lambda self, matchobj: self.total_page_number,
+        "i" : lambda self, matchobj: self.absolute_index + (1 if self.results_count > 0 else 0),
+        "I" : lambda self, matchobj: self.results_count,
+        "c" : lambda self, matchobj: self.status["caret"]
     }
 
     def format_prompt_string(self, s):
+        self.last_query_position = -1
+
         def formatter(matchobj):
             al = matchobj.group(1)
             if self.prompt_replacees.has_key(al):
-                return str(self.prompt_replacees[al](self))
+                return str(self.prompt_replacees[al](self, matchobj))
             else:
                 return ""
 
@@ -355,34 +392,55 @@ class Percol:
         if self.results_count > 0:
             self.status["index"] = idx % self.results_count
 
-    def select_next(self, k):
+    def select_next(self):
         self.select_index(self.status["index"] + 1)
 
-    def select_previous(self, k):
+    def select_previous(self):
         self.select_index(self.status["index"] - 1)
 
-    def select_next_page(self, k):
+    def select_next_page(self):
         self.select_index(self.status["index"] + self.RESULTS_DISPLAY_MAX)
 
-    def select_previous_page(self, k):
+    def select_previous_page(self):
         self.select_index(self.status["index"] - self.RESULTS_DISPLAY_MAX)
 
-    def select_top(self, k):
+    def select_top(self):
         self.select_index(0)
 
-    def select_bottom(self, k):
+    def select_bottom(self):
         self.select_index(self.results_count - 1)
 
     # ------------------------------------------------------------ #
     # Mark
     # ------------------------------------------------------------ #
 
-    def toggle_mark(self, k):
+    def toggle_mark(self):
         self.status["marks"][self.status["index"]] ^= True
 
-    def toggle_mark_and_next(self, k):
+    def toggle_mark_and_next(self):
         self.toggle_mark(k)
         self.select_next(k)
+
+    # ------------------------------------------------------------ #
+    # Caret position
+    # ------------------------------------------------------------ #
+
+    def set_caret(self, caret):
+        q_len = len(self.status["query"])
+
+        self.status["caret"] = max(min(caret, q_len), 0)
+
+    def beginning_of_line(self):
+        self.set_caret(0)
+
+    def end_of_line(self):
+        self.set_caret(self.set_caret(len(self.status["query"]) - 1))
+
+    def backward_char(self):
+        self.set_caret(self.status["caret"] - 1)
+
+    def forward_char(self):
+        self.set_caret(self.status["caret"] + 1)
 
     # ------------------------------------------------------------ #
     # Text
@@ -390,18 +448,34 @@ class Percol:
 
     def append_char_to_query(self, ch):
         self.status["query"] += chr(ch)
+        self.forward_char()
 
-    def delete_backward_char(self, k):
-        self.status["query"] = self.status["query"][:-1]
+    def insert_char(self, ch):
+        q = self.status["query"]
+        c = self.status["caret"]
+        self.status["query"] = q[:c] + chr(ch) + q[c:]
+        self.set_caret(c + 1)
 
-    def clear_query(self, k):
+    def delete_backward_char(self):
+        if self.status["caret"] > 0:
+            self.backward_char()
+            self.delete_forward_char()
+
+    def delete_forward_char(self):
+        caret = self.status["caret"]
+        self.status["query"] = self.status["query"][:caret] + self.status["query"][caret + 1:]
+
+    def delete_end_of_line(self):
+        self.status["query"] = self.status["query"][:self.status["caret"]]
+
+    def clear_query(self):
         self.status["query"] = ""
 
     # ------------------------------------------------------------ #
     # Finish / Cancel
     # ------------------------------------------------------------ #
 
-    def finish(self, k):
+    def finish(self):
         any_marked = False
 
         # TODO: make this action customizable
@@ -418,7 +492,7 @@ class Percol:
 
         raise TerminateLoop("Finished")
 
-    def cancel(self, k):
+    def cancel(self):
         raise TerminateLoop("Canceled")
 
     # ============================================================ #
@@ -427,8 +501,13 @@ class Percol:
 
     keymap = {
         # text
-        "C-a"   : clear_query,
         "C-h"   : delete_backward_char,
+        "C-d"   : delete_forward_char,
+        "C-k"   : delete_end_of_line,
+        # caret
+        "C-a"   : beginning_of_line,
+        "C-b"   : backward_char,
+        "C-f"   : forward_char,
         # line
         "C-n"   : select_next,
         "C-p"   : select_previous,
@@ -451,16 +530,16 @@ class Percol:
 
     def handle_key(self, ch):
         if self.keyhandler.is_displayable_key(ch):
-            self.append_char_to_query(ch)
+            self.insert_char(ch)
         elif ch == curses.KEY_RESIZE:
             self.handle_resize()
         else:
             k = self.keyhandler.get_key_for(ch)
 
-            # debug.log("key", k)
+            # debug.log("key")
 
             if self.keymap.has_key(k):
-                self.keymap[k](self, k)
+                self.keymap[k](self)
             else:
                 pass                    # undefined key
 
