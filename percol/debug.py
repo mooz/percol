@@ -16,6 +16,14 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
+import pprint
+
+pp = pprint.PrettyPrinter(indent=2)
+
 def log(name, s = ""):
     with open("/tmp/percol-log", "a") as f:
-        f.write(name + " : " + str(s) + "\n")
+        f.write(str(name) + " : " + str(s) + "\n")
+
+def dump(obj):
+    with open("/tmp/percol-log", "a") as f:
+        f.write(pp.pformat(obj) + "\n")
