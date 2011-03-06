@@ -32,7 +32,7 @@ import re
 
 from itertools import islice
 
-import key, debug
+import key, debug, action
 from finder import FinderMultiQueryString, FinderMultiQueryRegex
 
 class TerminateLoop(Exception):
@@ -42,7 +42,11 @@ class TerminateLoop(Exception):
     def __str__(self):
         return repr(self.value)
 
-class Percol:
+MODE_POWDER = 0
+MODE_ACTION = 1
+MODE_COUNT  = 2
+
+class Percol(object):
     colors = {
         "normal_line"   : 1,
         "selected_line" : 2,
@@ -60,15 +64,11 @@ class Percol:
             self.stdout = descriptors["stdout"]
             self.stderr = descriptors["stderr"]
 
-        if collection is None:
-            self.collection = self.stdin.read().split("\n")
-        else:
-            self.collection = collection
-
-        if finder is None:
-            self.finder = FinderMultiQueryString(self.collection) # FinderMultiQueryRegex(self.collection)
-        else:
-            self.finder = finder
+        self.init_statuses(collection = collection,
+                           actions = actions,
+                           finder = (finder or FinderMultiQueryString))
+        self.collection = collection
+        self.actions    = actions
 
     def __enter__(self):
         self.screen     = curses.initscr()
@@ -90,15 +90,19 @@ class Percol:
 
     def __exit__(self, exc_type, exc_value, traceback):
         curses.endwin()
+        self.execute_action()
 
-        # XXX: make this action customizable
-        for s in self.output_buffer:
-            self.stdout.write(s)
-
-    output_buffer = []
-    def output(self, s):
-        # delay actual output (wait curses to finish)
-        self.output_buffer.append(s)
+    # default
+    args_for_action = None
+    def execute_action(self):
+        if self.selected_actions and self.args_for_action:
+            for name, act_idx in self.selected_actions:
+                try:
+                    action = self.actions[act_idx]
+                    if action:
+                        action.act([arg for arg, arg_idx in self.args_for_action])
+                except:
+                    pass
 
     def update_screen_size(self):
         self.HEIGHT, self.WIDTH = self.screen.getmaxyx()
@@ -113,7 +117,7 @@ class Percol:
 
     @property
     def page_number(self):
-        return int(self.status["index"] / self.RESULTS_DISPLAY_MAX) + 1
+        return int(self.index / self.RESULTS_DISPLAY_MAX) + 1
 
     @property
     def total_page_number(self):
@@ -121,7 +125,7 @@ class Percol:
 
     @property
     def absolute_index(self):
-        return self.status["index"]
+        return self.index
 
     @property
     def absolute_page_head(self):
@@ -140,35 +144,134 @@ class Percol:
         return self.total_page_number * self.RESULTS_DISPLAY_MAX - self.results_count
 
     # ============================================================ #
+    # Statuses
+    # ============================================================ #
+
+    def init_statuses(self, collection, actions, finder):
+        self.statuses = [None] * 2
+        self.statuses[MODE_POWDER] = self.create_status(finder(collection))
+        self.statuses[MODE_ACTION] = self.create_status(finder([action.desc for action in actions]))
+
+    # default
+    mode_index = MODE_POWDER
+
+    @property
+    def status(self):
+        return self.statuses[self.mode_index]
+
+    def switch_mode(self):
+        self.mode_index = (self.mode_index + 1) % MODE_COUNT
+
+    def create_status(self, finder):
+        return {
+            "query"             : "",
+            "old_query"         : "",
+            "index"             : 0,
+            "caret"             : 0,
+            "marks"             : None,
+            "results"           : None,
+            "results_generator" : None,
+            "results_cache"     : {},
+            "finder"            : finder,
+        }
+
+    # use tools/gen_setter_getter.el to generate accessors below
+
+    @property
+    def query(self):
+        return self.status["query"]
+    @query.setter
+    def query(self, value):
+        self.status["query"] = value
+
+    @property
+    def old_query(self):
+        return self.status["old_query"]
+    @old_query.setter
+    def old_query(self, value):
+        self.status["old_query"] = value
+
+    @property
+    def index(self):
+        return self.status["index"]
+    @index.setter
+    def index(self, value):
+        self.status["index"] = value
+
+    @property
+    def caret(self):
+        return self.status["caret"]
+    @caret.setter
+    def caret(self, value):
+        self.status["caret"] = value
+
+    @property
+    def marks(self):
+        return self.status["marks"]
+    @marks.setter
+    def marks(self, value):
+        self.status["marks"] = value
+
+    @property
+    def results(self):
+        return self.status["results"]
+    @results.setter
+    def results(self, value):
+        self.status["results"] = value
+
+    @property
+    def results_generator(self):
+        return self.status["results_generator"]
+    @results_generator.setter
+    def results_generator(self, value):
+        self.status["results_generator"] = value
+
+    @property
+    def results_cache(self):
+        return self.status["results_cache"]
+    @results_cache.setter
+    def results_cache(self, value):
+        self.status["results_cache"] = value
+
+    @property
+    def finder(self):
+        return self.status["finder"]
+    @finder.setter
+    def finder(self, value):
+        self.status["finder"] = value
+
+    # XXX: does not works well
+    # http://stackoverflow.com/questions/1325673/python-how-to-add-property-to-a-class-dynamically
+    # def define_accessors_for_status(self):
+    #     status = self.create_status(None)
+    #
+    #     def create_getter(k):
+    #         def getter(self):
+    #             return self.status[k]
+    #         return getter
+    #
+    #     def create_setter(k):
+    #         def setter(self, v):
+    #              self.status[k] = v
+    #         return setter
+    #
+    #     for k in status:
+    #         setattr(Percol, k, property(create_getter(k), create_setter(k)))
+
+    # ============================================================ #
     # Main Loop
     # ============================================================ #
 
     def loop(self):
-        self.status = {
-            "index"             : 0,
-            "marks"             : None,
-            "query"             : None,
-            "caret"             : 0,
-            # result
-            "results"           : None,
-            "results_generator" : None,
-        }
-
-        self.results_cache = {}
-
-        old_query = self.status["query"] = ""
-
         self.init_display()
 
         while True:
             try:
                 self.handle_key(self.screen.getch())
 
-                query = self.status["query"]
-
-                if query != old_query:
-                    self.do_search(query)
-                    old_query = query
+                if self.query != self.old_query:
+                    self.do_search(self.query)
+                    self.old_query = self.query
 
                 self.refresh_display()
             except TerminateLoop as e:
@@ -176,7 +279,12 @@ class Percol:
 
     def init_display(self):
         self.update_screen_size()
+        # XXX: init results. ugly.
+        self.mode_index = MODE_ACTION
         self.do_search("")
+        self.mode_index = MODE_POWDER
+        self.do_search("")
+
         self.refresh_display()
 
     # ============================================================ #
@@ -184,7 +292,7 @@ class Percol:
     # ============================================================ #
 
     def do_search(self, query):
-        self.status["index"] = 0
+        self.index = 0
 
         if self.results_cache.has_key(query):
             self.status["results"], self.status["results_generator"] = self.results_cache[query]
@@ -215,15 +323,26 @@ class Percol:
         return got_results_count
 
     def get_result(self, index):
-        results = self.status["results"]
-
         try:
-            return results[index][0]
+            return self.results[index][0]
         except IndexError:
             return None
 
     def get_selected_result(self):
-        return self.get_result(self.status["index"])
+        return self.get_result(self.index)
+
+    def get_objective_results_for_status(self, status_idx):
+        original_status_idx = self.mode_index
+        self.mode_index = status_idx
+
+        results = self.get_marked_results_with_index()
+
+        if not results:
+            results.append((self.get_selected_result(), self.index))
+
+        self.mode_index = original_status_idx
+
+        return results
 
     # ============================================================ #
     # Display
@@ -286,11 +405,11 @@ class Percol:
         abs_head = self.absolute_page_head
         abs_tail = self.absolute_page_tail
 
-        for pos, result in islice(enumerate(self.status["results"]), abs_head, abs_tail):
+        for pos, result in islice(enumerate(self.results), abs_head, abs_tail):
             rel_pos = pos - abs_head
             try:
                 self.display_result(rel_pos + voffset, result,
-                                    is_current = pos == self.status["index"],
+                                    is_current = pos == self.index,
                                     is_marked = self.status["marks"][pos])
             except curses.error as e:
                 debug.log("display_results", str(e))
@@ -353,8 +472,8 @@ class Percol:
         except curses.error:
             pass
 
+    # default value
     last_query_position = -1
-
     def handle_format_prompt_query(self, matchobj):
         # -1 is from first '%' of %([a-zA-Z%])
         self.last_query_position = matchobj.start(1) - 1
@@ -398,19 +517,19 @@ class Percol:
             self.get_more_results()
 
         if self.results_count > 0:
-            self.status["index"] = idx % self.results_count
+            self.index = idx % self.results_count
 
     def select_next(self):
-        self.select_index(self.status["index"] + 1)
+        self.select_index(self.index + 1)
 
     def select_previous(self):
-        self.select_index(self.status["index"] - 1)
+        self.select_index(self.index - 1)
 
     def select_next_page(self):
-        self.select_index(self.status["index"] + self.RESULTS_DISPLAY_MAX)
+        self.select_index(self.index + self.RESULTS_DISPLAY_MAX)
 
     def select_previous_page(self):
-        self.select_index(self.status["index"] - self.RESULTS_DISPLAY_MAX)
+        self.select_index(self.index - self.RESULTS_DISPLAY_MAX)
 
     def select_top(self):
         self.select_index(0)
@@ -422,8 +541,15 @@ class Percol:
     # Mark
     # ------------------------------------------------------------ #
 
+    def get_marked_results_with_index(self):
+        if self.marks:
+            return [(self.get_result(i), i)
+                    for i, marked in enumerate(self.marks) if marked]
+        else:
+            return []
+
     def toggle_mark(self):
-        self.status["marks"][self.status["index"]] ^= True
+        self.marks[self.index] ^= True
 
     def toggle_mark_and_next(self):
         self.toggle_mark()
@@ -484,19 +610,7 @@ class Percol:
     # ------------------------------------------------------------ #
 
     def finish(self):
-        any_marked = False
-
-        # TODO: make this action customizable
-        def execute_action(arg):
-            self.output("{0}\n".format(arg))
-
-        for i, marked in enumerate(self.status["marks"]):
-            if marked:
-                any_marked = True
-                execute_action(self.get_result(i))
-
-        if not any_marked:
-            execute_action(self.get_selected_result())
+        self.args_for_action = self.get_objective_results_for_status(MODE_POWDER)
 
         raise TerminateLoop("Finished")
 
@@ -508,6 +622,7 @@ class Percol:
     # ============================================================ #
 
     keymap = {
+        "C-i"   : switch_mode,
         # text
         "C-h"   : delete_backward_char,
         "C-d"   : delete_forward_char,
@@ -566,5 +681,5 @@ class Percol:
     # ============================================================ #
 
     @property
-    def selected_action(self):
-        pass
+    def selected_actions(self):
+        return debug.dump(self.get_objective_results_for_status(MODE_ACTION))

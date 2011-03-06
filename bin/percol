@@ -63,10 +63,18 @@ if __name__ == "__main__":
 
         filename = args[0] if len(args) > 0 else None
 
-        collection = None
         if filename:
             with open(filename, "r") as f:
                 collection = f.read().split("\n")
+        else:
+            collection = sys.stdin.read().split("\n")
 
-        with Percol(descriptors = tty.reconnect_descriptors(tty_f), collection = collection) as percol:
+        # setup actions
+        import percol.actions as actions
+
+        acts = (actions.output_to_stdout, actions.output_to_stdout_double)
+
+        with Percol(descriptors = tty.reconnect_descriptors(tty_f),
+                    collection = collection,
+                    actions = acts) as percol:
             percol.loop()
