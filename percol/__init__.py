@@ -426,8 +426,8 @@ class Percol:
         self.status["marks"][self.status["index"]] ^= True
 
     def toggle_mark_and_next(self):
-        self.toggle_mark(k)
-        self.select_next(k)
+        self.toggle_mark()
+        self.select_next()
 
     # ------------------------------------------------------------ #
     # Caret position
