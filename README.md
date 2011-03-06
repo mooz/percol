@@ -5,7 +5,8 @@ percol adds flavor of interactive selection to the traditional pipe concept on U
 ## Installation
 
     $ git clone git://github.com/mooz/percol.git
-    $ ln -s percol/percol/main.py /usr/local/bin/percol
+    $ cd percol
+    $ sudo python setup.py install
 
 ## Example
 
