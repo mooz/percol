@@ -29,45 +29,7 @@ if __name__ == '__main__':
         sys.path.insert(0, libdir)
 
 from percol import Percol
-
-def get_ttyname():
-    for f in sys.stdin, sys.stdout, sys.stderr:
-        if f.isatty():
-            return os.ttyname(f.fileno())
-    return None
-
-def reconnect_descriptors(tty):
-    target = {}
-
-    stdios = (("stdin", "r"), ("stdout", "w"), ("stderr", "w"))
-
-    tty_desc = tty.fileno()
-
-    for name, mode in stdios:
-        f = getattr(sys, name)
-
-        if f.isatty():
-            # f is TTY
-            target[name] = f
-        else:
-            # f is other process's output / input or a file
-
-            # save descriptor connected with other process
-            std_desc = f.fileno()
-            other_desc = os.dup(std_desc)
-
-            # set std descriptor. std_desc become invalid.
-            os.dup2(tty_desc, std_desc)
-
-            # set file object connected to other_desc to corresponding one of sys.{stdin, stdout, stderr}
-            try:
-                target[name] = os.fdopen(other_desc, mode)
-            except OSError:
-                # maybe mode specification is invalid or /dev/null is specified (?)
-                target[name] = None
-                print("Failed to open {0}".format(other_desc))
-
-    return target
+from percol import tty
 
 def set_locale():
     locale.setlocale(locale.LC_ALL, '')
@@ -89,14 +51,14 @@ if __name__ == "__main__":
         parser.print_help()
         exit(1)
 
-    ttyname = options.tty or get_ttyname()
+    ttyname = options.tty or tty.get_ttyname()
     if not ttyname:
         exit_program("""Error: No tty name is given and failed to guess (maybe stderr is redirecred)""")
 
     code = set_locale()
 
-    with open(ttyname, "r+w") as tty:
-        if not tty.isatty():
+    with open(ttyname, "r+w") as tty_f:
+        if not tty_f.isatty():
             exit_program("Error: {0} is not a tty file".format(ttyname))
 
         filename = args[0] if len(args) > 0 else None
@@ -106,5 +68,5 @@ if __name__ == "__main__":
             with open(filename, "r") as f:
                 collection = f.read().split("\n")
 
-        with Percol(descriptors = reconnect_descriptors(tty), collection = collection) as percol:
+        with Percol(descriptors = tty.reconnect_descriptors(tty_f), collection = collection) as percol:
             percol.loop()
