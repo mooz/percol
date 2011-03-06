@@ -434,7 +434,7 @@ class Percol:
         self.set_caret(0)
 
     def end_of_line(self):
-        self.set_caret(self.set_caret(len(self.status["query"]) - 1))
+        self.set_caret(len(self.status["query"]))
 
     def backward_char(self):
         self.set_caret(self.status["caret"] - 1)
@@ -506,6 +506,7 @@ class Percol:
         "C-k"   : delete_end_of_line,
         # caret
         "C-a"   : beginning_of_line,
+        "C-e"   : end_of_line,
         "C-b"   : backward_char,
         "C-f"   : forward_char,
         # line
