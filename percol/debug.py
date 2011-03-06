@@ -27,3 +27,4 @@ def log(name, s = ""):
 def dump(obj):
     with open("/tmp/percol-log", "a") as f:
         f.write(pp.pformat(obj) + "\n")
+    return obj
