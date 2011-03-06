@@ -16,6 +16,14 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
+"""Adds flavor of interactive filtering to the traditional pipe concept of shell.
+Try
+ $ A | percol | B
+and you can display the output of command A and filter it intaractively then pass them to command B.
+Interface of percol is highly inspired by anything.el for Emacs."""
+
+__version__ = "0.0.1"
+
 import sys
 import signal
 import curses

@@ -5,3 +5,5 @@
 Thumbs.db
 .DS_Store
 tags
+build/
+dist/
