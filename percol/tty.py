@@ -51,6 +51,7 @@ def reconnect_descriptors(tty):
             # set file object connected to other_desc to corresponding one of sys.{stdin, stdout, stderr}
             try:
                 target[name] = os.fdopen(other_desc, mode)
+                setattr(sys, name, target[name])
             except OSError:
                 # maybe mode specification is invalid or /dev/null is specified (?)
                 target[name] = None
