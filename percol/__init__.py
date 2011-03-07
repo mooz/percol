@@ -642,45 +642,53 @@ class Percol(object):
     # ============================================================ #
 
     keymap = {
-        "C-i"   : switch_mode,
+        "C-i"         : switch_mode,
         # text
-        "C-h"   : delete_backward_char,
-        "C-d"   : delete_forward_char,
-        "C-k"   : kill_end_of_line,
-        "C-y"   : yank,
+        "<backspace>" : delete_backward_char,
+        "C-h"         : delete_backward_char,
+        "C-d"         : delete_forward_char,
+        "<dc>"        : delete_forward_char,
+        "C-k"         : kill_end_of_line,
+        "C-y"         : yank,
         # caret
-        "C-a"   : beginning_of_line,
-        "C-e"   : end_of_line,
-        "C-b"   : backward_char,
-        "C-f"   : forward_char,
+        "C-a"         : beginning_of_line,
+        "C-e"         : end_of_line,
+        "C-b"         : backward_char,
+        "<left>"      : backward_char,
+        "C-f"         : forward_char,
+        "<right>"     : forward_char,
         # line
-        "C-n"   : select_next,
-        "C-p"   : select_previous,
+        "C-n"         : select_next,
+        "<down>"      : select_next,
+        "C-p"         : select_previous,
+        "<up>"        : select_previous,
         # page
-        "C-v"   : select_next_page,
-        "M-v"   : select_previous_page,
+        "C-v"         : select_next_page,
+        "<npage>"     : select_next_page,
+        "M-v"         : select_previous_page,
+        "<ppage>"     : select_previous_page,
         # top / bottom
-        "M-<"   : select_top,
-        "M->"   : select_bottom,
+        "M-<"         : select_top,
+        "<home>"      : select_top,
+        "M->"         : select_bottom,
+        "<end>"       : select_bottom,
         # mark
-        "C-SPC" : toggle_mark_and_next,
+        "C-SPC"       : toggle_mark_and_next,
         # finish
-        "RET"   : finish,
-        "C-m"   : finish,       # XXX: C-m cannot be handled? (seems to be interpreted as C-j)
-        "C-j"   : finish,
+        "RET"         : finish,
+        "C-m"         : finish,       # XXX: C-m cannot be handled? (seems to be interpreted as C-j)
+        "C-j"         : finish,
         # cancel
-        "C-g"   : cancel,
-        "C-c"   : cancel
+        "C-g"         : cancel,
+        "C-c"         : cancel
     }
 
     # default
     last_key = None
     def handle_key(self, ch):
         self.last_key = None
-        if self.keyhandler.is_displayable_key(ch):
-            self.insert_char(ch)
-            key = chr(ch)
-        elif ch == curses.KEY_RESIZE:
+
+        if ch == curses.KEY_RESIZE:
             self.handle_resize()
             key = "<RESIZE>"
         else:
@@ -688,9 +696,10 @@ class Percol(object):
 
             if self.keymap.has_key(k):
                 self.keymap[k](self)
-            else:
-                pass                    # undefined key
+            elif self.keyhandler.is_displayable_key(ch):
+                self.insert_char(ch)
             key = k
+
         self.last_key = key
 
     def handle_resize(self):
