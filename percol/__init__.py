@@ -607,6 +607,21 @@ class Percol(object):
         self.status["query"] = ""
 
     # ------------------------------------------------------------ #
+    # Text > kill
+    # ------------------------------------------------------------ #
+
+    def kill_end_of_line(self):
+        self.killed = self.query[self.caret:]
+        self.query  = self.query[:self.caret]
+
+    killed = None                  # default
+    def yank(self):
+        if self.killed:
+            caret_pos  = self.caret + len(self.killed)
+            self.query = self.query[:self.caret] + self.killed + self.query[self.caret:]
+            self.caret = caret_pos
+
+    # ------------------------------------------------------------ #
     # Finish / Cancel
     # ------------------------------------------------------------ #
 
@@ -627,7 +642,8 @@ class Percol(object):
         # text
         "C-h"   : delete_backward_char,
         "C-d"   : delete_forward_char,
-        "C-k"   : delete_end_of_line,
+        "C-k"   : kill_end_of_line,
+        "C-y"   : yank,
         # caret
         "C-a"   : beginning_of_line,
         "C-e"   : end_of_line,
