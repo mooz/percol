@@ -16,102 +16,169 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-import curses
+import curses, debug
 
-# imported from ncurses.h
+SPECIAL_KEYS = {
+    curses.KEY_A1        : "<a1>",
+    curses.KEY_A3        : "<a3>",
+    curses.KEY_B2        : "<b2>",
+    curses.KEY_BACKSPACE : "<backspace>",
+    curses.KEY_BEG       : "<beg>",
+    curses.KEY_BREAK     : "<break>",
+    curses.KEY_BTAB      : "<btab>",
+    curses.KEY_C1        : "<c1>",
+    curses.KEY_C3        : "<c3>",
+    curses.KEY_CANCEL    : "<cancel>",
+    curses.KEY_CATAB     : "<catab>",
+    curses.KEY_CLEAR     : "<clear>",
+    curses.KEY_CLOSE     : "<close>",
+    curses.KEY_COMMAND   : "<command>",
+    curses.KEY_COPY      : "<copy>",
+    curses.KEY_CREATE    : "<create>",
+    curses.KEY_CTAB      : "<ctab>",
+    curses.KEY_DC        : "<dc>",
+    curses.KEY_DL        : "<dl>",
+    curses.KEY_DOWN      : "<down>",
+    curses.KEY_EIC       : "<eic>",
+    curses.KEY_END       : "<end>",
+    curses.KEY_ENTER     : "<enter>",
+    curses.KEY_EOL       : "<eol>",
+    curses.KEY_EOS       : "<eos>",
+    curses.KEY_EXIT      : "<exit>",
+    curses.KEY_F0        : "<f0>",
+    curses.KEY_F1        : "<f1>",
+    curses.KEY_F10       : "<f10>",
+    curses.KEY_F11       : "<f11>",
+    curses.KEY_F12       : "<f12>",
+    curses.KEY_F13       : "<f13>",
+    curses.KEY_F14       : "<f14>",
+    curses.KEY_F15       : "<f15>",
+    curses.KEY_F16       : "<f16>",
+    curses.KEY_F17       : "<f17>",
+    curses.KEY_F18       : "<f18>",
+    curses.KEY_F19       : "<f19>",
+    curses.KEY_F2        : "<f2>",
+    curses.KEY_F20       : "<f20>",
+    curses.KEY_F21       : "<f21>",
+    curses.KEY_F22       : "<f22>",
+    curses.KEY_F23       : "<f23>",
+    curses.KEY_F24       : "<f24>",
+    curses.KEY_F25       : "<f25>",
+    curses.KEY_F26       : "<f26>",
+    curses.KEY_F27       : "<f27>",
+    curses.KEY_F28       : "<f28>",
+    curses.KEY_F29       : "<f29>",
+    curses.KEY_F3        : "<f3>",
+    curses.KEY_F30       : "<f30>",
+    curses.KEY_F31       : "<f31>",
+    curses.KEY_F32       : "<f32>",
+    curses.KEY_F33       : "<f33>",
+    curses.KEY_F34       : "<f34>",
+    curses.KEY_F35       : "<f35>",
+    curses.KEY_F36       : "<f36>",
+    curses.KEY_F37       : "<f37>",
+    curses.KEY_F38       : "<f38>",
+    curses.KEY_F39       : "<f39>",
+    curses.KEY_F4        : "<f4>",
+    curses.KEY_F40       : "<f40>",
+    curses.KEY_F41       : "<f41>",
+    curses.KEY_F42       : "<f42>",
+    curses.KEY_F43       : "<f43>",
+    curses.KEY_F44       : "<f44>",
+    curses.KEY_F45       : "<f45>",
+    curses.KEY_F46       : "<f46>",
+    curses.KEY_F47       : "<f47>",
+    curses.KEY_F48       : "<f48>",
+    curses.KEY_F49       : "<f49>",
+    curses.KEY_F5        : "<f5>",
+    curses.KEY_F50       : "<f50>",
+    curses.KEY_F51       : "<f51>",
+    curses.KEY_F52       : "<f52>",
+    curses.KEY_F53       : "<f53>",
+    curses.KEY_F54       : "<f54>",
+    curses.KEY_F55       : "<f55>",
+    curses.KEY_F56       : "<f56>",
+    curses.KEY_F57       : "<f57>",
+    curses.KEY_F58       : "<f58>",
+    curses.KEY_F59       : "<f59>",
+    curses.KEY_F6        : "<f6>",
+    curses.KEY_F60       : "<f60>",
+    curses.KEY_F61       : "<f61>",
+    curses.KEY_F62       : "<f62>",
+    curses.KEY_F63       : "<f63>",
+    curses.KEY_F7        : "<f7>",
+    curses.KEY_F8        : "<f8>",
+    curses.KEY_F9        : "<f9>",
+    curses.KEY_FIND      : "<find>",
+    curses.KEY_HELP      : "<help>",
+    curses.KEY_HOME      : "<home>",
+    curses.KEY_IC        : "<ic>",
+    curses.KEY_IL        : "<il>",
+    curses.KEY_LEFT      : "<left>",
+    curses.KEY_LL        : "<ll>",
+    curses.KEY_MARK      : "<mark>",
+    curses.KEY_MAX       : "<max>",
+    curses.KEY_MESSAGE   : "<message>",
+    curses.KEY_MIN       : "<min>",
+    curses.KEY_MOUSE     : "<mouse>",
+    curses.KEY_MOVE      : "<move>",
+    curses.KEY_NEXT      : "<next>",
+    curses.KEY_NPAGE     : "<npage>",
+    curses.KEY_OPEN      : "<open>",
+    curses.KEY_OPTIONS   : "<options>",
+    curses.KEY_PPAGE     : "<ppage>",
+    curses.KEY_PREVIOUS  : "<previous>",
+    curses.KEY_PRINT     : "<print>",
+    curses.KEY_REDO      : "<redo>",
+    curses.KEY_REFERENCE : "<reference>",
+    curses.KEY_REFRESH   : "<refresh>",
+    curses.KEY_REPLACE   : "<replace>",
+    curses.KEY_RESET     : "<reset>",
+    curses.KEY_RESIZE    : "<resize>",
+    curses.KEY_RESTART   : "<restart>",
+    curses.KEY_RESUME    : "<resume>",
+    curses.KEY_RIGHT     : "<right>",
+    curses.KEY_SAVE      : "<save>",
+    curses.KEY_SBEG      : "<sbeg>",
+    curses.KEY_SCANCEL   : "<scancel>",
+    curses.KEY_SCOMMAND  : "<scommand>",
+    curses.KEY_SCOPY     : "<scopy>",
+    curses.KEY_SCREATE   : "<screate>",
+    curses.KEY_SDC       : "<sdc>",
+    curses.KEY_SDL       : "<sdl>",
+    curses.KEY_SELECT    : "<select>",
+    curses.KEY_SEND      : "<send>",
+    curses.KEY_SEOL      : "<seol>",
+    curses.KEY_SEXIT     : "<sexit>",
+    curses.KEY_SF        : "<sf>",
+    curses.KEY_SFIND     : "<sfind>",
+    curses.KEY_SHELP     : "<shelp>",
+    curses.KEY_SHOME     : "<shome>",
+    curses.KEY_SIC       : "<sic>",
+    curses.KEY_SLEFT     : "<sleft>",
+    curses.KEY_SMESSAGE  : "<smessage>",
+    curses.KEY_SMOVE     : "<smove>",
+    curses.KEY_SNEXT     : "<snext>",
+    curses.KEY_SOPTIONS  : "<soptions>",
+    curses.KEY_SPREVIOUS : "<sprevious>",
+    curses.KEY_SPRINT    : "<sprint>",
+    curses.KEY_SR        : "<sr>",
+    curses.KEY_SREDO     : "<sredo>",
+    curses.KEY_SREPLACE  : "<sreplace>",
+    curses.KEY_SRESET    : "<sreset>",
+    curses.KEY_SRIGHT    : "<sright>",
+    curses.KEY_SRSUME    : "<srsume>",
+    curses.KEY_SSAVE     : "<ssave>",
+    curses.KEY_SSUSPEND  : "<ssuspend>",
+    curses.KEY_STAB      : "<stab>",
+    curses.KEY_SUNDO     : "<sundo>",
+    curses.KEY_SUSPEND   : "<suspend>",
+    curses.KEY_UNDO      : "<undo>",
+    curses.KEY_UP        : "<up>",
+}
 
-KEY_DOWN      = 0402  # down-arrow key
-KEY_UP        = 0403  # up-arrow key
-KEY_LEFT      = 0404  # left-arrow key
-KEY_RIGHT     = 0405  # right-arrow key
-KEY_HOME      = 0406  # home key
-KEY_BACKSPACE = 0407  # backspace key
-KEY_F0        = 0410  # Function keys.  Space for 64
-KEY_DL        = 0510  # delete-line key
-KEY_IL        = 0511  # insert-line key
-KEY_DC        = 0512  # delete-character key
-KEY_IC        = 0513  # insert-character key
-KEY_EIC       = 0514  # sent by rmir or smir in insert mode
-KEY_CLEAR     = 0515  # clear-screen or erase key
-KEY_EOS       = 0516  # clear-to-end-of-screen key
-KEY_EOL       = 0517  # clear-to-end-of-line key
-KEY_SF        = 0520  # scroll-forward key
-KEY_SR        = 0521  # scroll-backward key
-KEY_NPAGE     = 0522  # next-page key
-KEY_PPAGE     = 0523  # previous-page key
-KEY_STAB      = 0524  # set-tab key
-KEY_CTAB      = 0525  # clear-tab key
-KEY_CATAB     = 0526  # clear-all-tabs key
-KEY_ENTER     = 0527  # enter/send key
-KEY_PRINT     = 0532  # print key
-KEY_LL        = 0533  # lower-left key (home down)
-KEY_A1        = 0534  # upper left of keypad
-KEY_A3        = 0535  # upper right of keypad
-KEY_B2        = 0536  # center of keypad
-KEY_C1        = 0537  # lower left of keypad
-KEY_C3        = 0540  # lower right of keypad
-KEY_BTAB      = 0541  # back-tab key
-KEY_BEG       = 0542  # begin key
-KEY_CANCEL    = 0543  # cancel key
-KEY_CLOSE     = 0544  # close key
-KEY_COMMAND   = 0545  # command key
-KEY_COPY      = 0546  # copy key
-KEY_CREATE    = 0547  # create key
-KEY_END       = 0550  # end key
-KEY_EXIT      = 0551  # exit key
-KEY_FIND      = 0552  # find key
-KEY_HELP      = 0553  # help key
-KEY_MARK      = 0554  # mark key
-KEY_MESSAGE   = 0555  # message key
-KEY_MOVE      = 0556  # move key
-KEY_NEXT      = 0557  # next key
-KEY_OPEN      = 0560  # open key
-KEY_OPTIONS   = 0561  # options key
-KEY_PREVIOUS  = 0562  # previous key
-KEY_REDO      = 0563  # redo key
-KEY_REFERENCE = 0564  # reference key
-KEY_REFRESH   = 0565  # refresh key
-KEY_REPLACE   = 0566  # replace key
-KEY_RESTART   = 0567  # restart key
-KEY_RESUME    = 0570  # resume key
-KEY_SAVE      = 0571  # save key
-KEY_SBEG      = 0572  # shifted begin key
-KEY_SCANCEL   = 0573  # shifted cancel key
-KEY_SCOMMAND  = 0574  # shifted command key
-KEY_SCOPY     = 0575  # shifted copy key
-KEY_SCREATE   = 0576  # shifted create key
-KEY_SDC       = 0577  # shifted delete-character key
-KEY_SDL       = 0600  # shifted delete-line key
-KEY_SELECT    = 0601  # select key
-KEY_SEND      = 0602  # shifted end key
-KEY_SEOL      = 0603  # shifted clear-to-end-of-line key
-KEY_SEXIT     = 0604  # shifted exit key
-KEY_SFIND     = 0605  # shifted find key
-KEY_SHELP     = 0606  # shifted help key
-KEY_SHOME     = 0607  # shifted home key
-KEY_SIC       = 0610  # shifted insert-character key
-KEY_SLEFT     = 0611  # shifted left-arrow key
-KEY_SMESSAGE  = 0612  # shifted message key
-KEY_SMOVE     = 0613  # shifted move key
-KEY_SNEXT     = 0614  # shifted next key
-KEY_SOPTIONS  = 0615  # shifted options key
-KEY_SPREVIOUS = 0616  # shifted previous key
-KEY_SPRINT    = 0617  # shifted print key
-KEY_SREDO     = 0620  # shifted redo key
-KEY_SREPLACE  = 0621  # shifted replace key
-KEY_SRIGHT    = 0622  # shifted right-arrow key
-KEY_SRSUME    = 0623  # shifted resume key
-KEY_SSAVE     = 0624  # shifted save key
-KEY_SSUSPEND  = 0625  # shifted suspend key
-KEY_SUNDO     = 0626  # shifted undo key
-KEY_SUSPEND   = 0627  # suspend key
-KEY_UNDO      = 0630  # undo key
-KEY_MOUSE     = 0631  # Mouse event has occurred
-KEY_RESIZE    = 0632  # Terminal resize event
-KEY_EVENT     = 0633  # We were interrupted by an event
-
-# other
-KEY_ESCAPE    = 27
+# Other
+KEY_ESCAPE = 27
 
 class KeyHandler:
     def __init__(self, screen):
@@ -122,6 +189,9 @@ class KeyHandler:
 
         if self.is_displayable_key(ch):
             k = self.displayable_key_to_str(ch)
+        elif SPECIAL_KEYS.has_key(ch):
+            debug.log("special key", ch)
+            k = SPECIAL_KEYS[ch]
         elif self.is_ctrl_masked_key(ch):
             k = self.ctrl_masked_key_to_str(ch)
         elif ch == KEY_ESCAPE:
