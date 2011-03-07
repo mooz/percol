@@ -83,6 +83,10 @@ class Percol(object):
 
         signal.signal(signal.SIGINT, lambda signum, frame: None)
 
+        # handle special keys like <f1>, <down>, ...
+        self.screen.keypad(True)
+
+        curses.raw()
         curses.noecho()
         curses.cbreak()
 
