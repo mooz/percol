@@ -156,6 +156,8 @@ class Percol(object):
         self.statuses[MODE_POWDER] = self.create_status(finder(collection))
         self.statuses[MODE_ACTION] = self.create_status(finder([action.desc for action in actions]))
 
+        self.define_accessors_for_status()
+
     # default
     mode_index = MODE_POWDER
 
@@ -179,88 +181,16 @@ class Percol(object):
             "finder"            : finder,
         }
 
-    # use tools/gen_setter_getter.el to generate accessors below
+    def define_accessors_for_status(self):
+        def create_property(k):
+            def getter(self):
+                return self.status[k]
+            def setter(self, v):
+                 self.status[k] = v
+            return getter, setter
 
-    @property
-    def query(self):
-        return self.status["query"]
-    @query.setter
-    def query(self, value):
-        self.status["query"] = value
-
-    @property
-    def old_query(self):
-        return self.status["old_query"]
-    @old_query.setter
-    def old_query(self, value):
-        self.status["old_query"] = value
-
-    @property
-    def index(self):
-        return self.status["index"]
-    @index.setter
-    def index(self, value):
-        self.status["index"] = value
-
-    @property
-    def caret(self):
-        return self.status["caret"]
-    @caret.setter
-    def caret(self, value):
-        self.status["caret"] = value
-
-    @property
-    def marks(self):
-        return self.status["marks"]
-    @marks.setter
-    def marks(self, value):
-        self.status["marks"] = value
-
-    @property
-    def results(self):
-        return self.status["results"]
-    @results.setter
-    def results(self, value):
-        self.status["results"] = value
-
-    @property
-    def results_generator(self):
-        return self.status["results_generator"]
-    @results_generator.setter
-    def results_generator(self, value):
-        self.status["results_generator"] = value
-
-    @property
-    def results_cache(self):
-        return self.status["results_cache"]
-    @results_cache.setter
-    def results_cache(self, value):
-        self.status["results_cache"] = value
-
-    @property
-    def finder(self):
-        return self.status["finder"]
-    @finder.setter
-    def finder(self, value):
-        self.status["finder"] = value
-
-    # XXX: does not works well
-    # http://stackoverflow.com/questions/1325673/python-how-to-add-property-to-a-class-dynamically
-    # def define_accessors_for_status(self):
-    #     status = self.create_status(None)
-    #
-    #     def create_getter(k):
-    #         def getter(self):
-    #             return self.status[k]
-    #         return getter
-    #
-    #     def create_setter(k):
-    #         def setter(self, v):
-    #              self.status[k] = v
-    #         return setter
-    #
-    #     for k in status:
-    #         setattr(Percol, k, property(create_getter(k), create_setter(k)))
+        for k in self.create_status(None):
+            setattr(self.__class__, k, property(*create_property(k)))
 
     # ============================================================ #
     # Main Loop
