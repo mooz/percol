@@ -427,7 +427,7 @@ class Percol(object):
         return 0                        # self.RESULTS_DISPLAY_MAX
 
     PROMPT  = "QUERY> %q"
-    RPROMPT = "(%i/%I) [%n/%N]"
+    RPROMPT = "{%k} (%i/%I) [%n/%N]"
 
     def display_caret_to_prompt(self, y, x, prompt):
         pos = prompt.find(self.CARET_FORMAT)
@@ -489,7 +489,8 @@ class Percol(object):
         "N" : lambda self, matchobj: self.total_page_number,
         "i" : lambda self, matchobj: self.absolute_index + (1 if self.results_count > 0 else 0),
         "I" : lambda self, matchobj: self.results_count,
-        "c" : lambda self, matchobj: self.status["caret"]
+        "c" : lambda self, matchobj: self.status["caret"],
+        "k" : lambda self, matchobj: self.last_key
     }
 
     def format_prompt_string(self, s):
@@ -652,20 +653,25 @@ class Percol(object):
         "C-c"   : cancel
     }
 
+    # default
+    last_key = None
     def handle_key(self, ch):
+        self.last_key = None
         if self.keyhandler.is_displayable_key(ch):
             self.insert_char(ch)
+            key = chr(ch)
         elif ch == curses.KEY_RESIZE:
             self.handle_resize()
+            key = "<RESIZE>"
         else:
             k = self.keyhandler.get_key_for(ch)
-
-            # debug.log("key")
 
             if self.keymap.has_key(k):
                 self.keymap[k](self)
             else:
                 pass                    # undefined key
+            key = k
+        self.last_key = key
 
     def handle_resize(self):
         # resize
