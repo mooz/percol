@@ -105,6 +105,8 @@ class FinderMultiQueryString(FinderMultiQuery):
 # Finder > AND search > Regular Expression
 # ============================================================ #
 
+import re
+
 class FinderMultiQueryRegex(FinderMultiQuery):
     def find_query(self, needle, haystack):
         try:
