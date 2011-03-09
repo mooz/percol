@@ -45,7 +45,7 @@ class FinderMultiQuery(Finder):
         query_is_empty = query == ""
         use_re = not self.split_re is None
 
-        for line in self.collection:
+        for idx, line in enumerate(self.collection):
             if query_is_empty:
                 res = self.dummy_res
             else:
@@ -56,7 +56,7 @@ class FinderMultiQuery(Finder):
                 res = self.find_queries(queries, line)
 
             if res:
-                yield line, res
+                yield line, res, idx
 
     and_search = True
 

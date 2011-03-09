@@ -72,6 +72,7 @@ class Percol(object):
         self.actions    = actions
 
         self.result_handling_lock = threading.Lock()
+        self.setup_with_mode_context()
 
     def __enter__(self):
         self.screen     = curses.initscr()
@@ -103,11 +104,11 @@ class Percol(object):
     args_for_action = None
     def execute_action(self):
         if self.selected_actions and self.args_for_action:
-            for name, act_idx in self.selected_actions:
+            for name, _, act_idx in self.selected_actions:
                 try:
                     action = self.actions[act_idx]
                     if action:
-                        action.act([arg for arg, arg_idx in self.args_for_action])
+                        action.act([arg for arg, _, _ in self.args_for_action])
                 except:
                     pass
 
@@ -153,6 +154,26 @@ class Percol(object):
     # ============================================================ #
     # Statuses
     # ============================================================ #
+
+
+    def setup_with_mode_context(self):
+        target = self
+
+        class WithModeContext:
+            def __init__(self, prefer_index):
+                self.prefer_index = prefer_index
+
+            def __enter__(self):
+                self.original_idx = target.mode_index
+                target.mode_index = self.prefer_index
+
+            def __exit__(self, exc_type, exc_value, traceback):
+                target.mode_index = self.original_idx
+
+        self.WithModeContext = WithModeContext
+
+        self.with_mode_powder = WithModeContext(MODE_POWDER)
+        self.with_mode_action = WithModeContext(MODE_ACTION)
 
     def init_statuses(self, collection, actions, finder):
         self.statuses = [None] * 2
@@ -289,16 +310,12 @@ class Percol(object):
         return self.get_result(self.index)
 
     def get_objective_results_for_status(self, status_idx):
-        original_status_idx = self.mode_index
-        self.mode_index = status_idx
-
-        results = self.get_marked_results_with_index()
-
-        if not results:
-            results.append((self.get_selected_result(), self.index))
-
-        self.mode_index = original_status_idx
-
+        with self.WithModeContext(status_idx):
+            results = self.get_marked_results_with_index()
+            if not results:
+                index  = self.index
+                result = self.results[index]
+                results.append((result[0], index, result[2]))
         return results
 
     # ============================================================ #
@@ -328,7 +345,7 @@ class Percol(object):
                 pass
 
     def display_result(self, y, result, is_current = False, is_marked = False):
-        line, find_info = result
+        line, find_info, abs_idx = result
 
         if is_current:
             line_style = curses.color_pair(self.colors["selected_line"])
@@ -502,7 +519,7 @@ class Percol(object):
 
     def get_marked_results_with_index(self):
         if self.marks:
-            return [(self.get_result(i), i)
+            return [(self.results[i][0], i, self.results[i][2])
                     for i, marked in enumerate(self.marks) if marked]
         else:
             return []
