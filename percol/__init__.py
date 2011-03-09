@@ -29,6 +29,7 @@ import signal
 import curses
 import math
 import re
+import threading
 
 from itertools import islice
 
@@ -69,6 +70,8 @@ class Percol(object):
                            finder = (finder or FinderMultiQueryString))
         self.collection = collection
         self.actions    = actions
+
+        self.result_handling_lock = threading.Lock()
 
     def __enter__(self):
         self.screen     = curses.initscr()
@@ -196,16 +199,35 @@ class Percol(object):
     # Main Loop
     # ============================================================ #
 
+    SEARCH_DELAY = 0.05
+
     def loop(self):
         self.init_display()
+
+        self.result_updating_timer = None
+
+        def search_and_refresh_display():
+            self.do_search(self.query)
+            self.refresh_display()
 
         while True:
             try:
                 self.handle_key(self.screen.getch())
 
                 if self.query != self.old_query:
-                    self.do_search(self.query)
+                    # search again
                     self.old_query = self.query
+
+                    with self.result_handling_lock:
+                        if not self.result_updating_timer is None:
+                            # clear timer
+                            self.result_updating_timer.cancel()
+                            self.result_updating_timer = None
+
+                        # with bounce
+                        t = threading.Timer(self.SEARCH_DELAY, search_and_refresh_display)
+                        self.result_updating_timer = t
+                        t.start()
 
                 self.refresh_display()
             except TerminateLoop as e:
@@ -226,22 +248,23 @@ class Percol(object):
     # ============================================================ #
 
     def do_search(self, query):
-        self.index = 0
+        with self.result_handling_lock:
+            self.index = 0
 
-        if self.results_cache.has_key(query):
-            self.status["results"], self.status["results_generator"] = self.results_cache[query]
-            # we have to check the cache is complete or not
-            needed_count = self.needed_count
-            if needed_count > 0:
-                self.get_more_results(count = needed_count)
-        else:
-            self.status["results_generator"] = self.finder.find(query)
-            self.status["results"] = [result for result
-                                      in islice(self.status["results_generator"], self.RESULTS_DISPLAY_MAX)]
-            # cache results and generator
-            self.results_cache[query] = self.status["results"], self.status["results_generator"]
+            if self.results_cache.has_key(query):
+                self.status["results"], self.status["results_generator"] = self.results_cache[query]
+                # we have to check the cache is complete or not
+                needed_count = self.needed_count
+                if needed_count > 0:
+                    self.get_more_results(count = needed_count)
+            else:
+                self.status["results_generator"] = self.finder.find(query)
+                self.status["results"] = [result for result
+                                          in islice(self.status["results_generator"], self.RESULTS_DISPLAY_MAX)]
+                # cache results and generator
+                self.results_cache[query] = self.status["results"], self.status["results_generator"]
 
-        self.status["marks"] = [False] * self.results_count
+            self.status["marks"] = [False] * self.results_count
 
     def get_more_results(self, count = None):
         if count is None:
@@ -334,19 +357,20 @@ class Percol(object):
                     pass
 
     def display_results(self):
-        voffset = self.RESULT_OFFSET_V
+        with self.result_handling_lock:
+            voffset = self.RESULT_OFFSET_V
 
-        abs_head = self.absolute_page_head
-        abs_tail = self.absolute_page_tail
+            abs_head = self.absolute_page_head
+            abs_tail = self.absolute_page_tail
 
-        for pos, result in islice(enumerate(self.results), abs_head, abs_tail):
-            rel_pos = pos - abs_head
-            try:
-                self.display_result(rel_pos + voffset, result,
-                                    is_current = pos == self.index,
-                                    is_marked = self.status["marks"][pos])
-            except curses.error as e:
-                debug.log("display_results", str(e))
+            for pos, result in islice(enumerate(self.results), abs_head, abs_tail):
+                rel_pos = pos - abs_head
+                try:
+                    self.display_result(rel_pos + voffset, result,
+                                        is_current = pos == self.index,
+                                        is_marked = self.status["marks"][pos])
+                except curses.error as e:
+                    debug.log("display_results", str(e))
 
     # ============================================================ #
     # Prompt
