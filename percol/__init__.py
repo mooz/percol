@@ -402,15 +402,7 @@ class Percol(object):
         return 0                        # self.RESULTS_DISPLAY_MAX
 
     PROMPT  = "QUERY> %q"
-    RPROMPT = "{%k} (%i/%I) [%n/%N]"
-
-    def display_caret_to_prompt(self, y, x, prompt):
-        pos = prompt.find(self.CARET_FORMAT)
-        if (pos >= 0):
-            prompt = prompt.replace(self.CARET_FORMAT, "")
-
-        pos = re.search("^[^]", prompt)
-        q_offset = self.PROMPT.find("%q")
+    RPROMPT = "(%i/%I) [%n/%N]"
 
     def display_prompt(self):
         # display underline
