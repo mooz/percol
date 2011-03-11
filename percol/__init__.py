@@ -324,6 +324,19 @@ class Percol(object):
     # Display
     # ============================================================ #
 
+    def display_len(self, s, beg = None, end = None):
+        if beg is None:
+            beg = 0
+        if end is None:
+            end = len(s)
+
+        dlen = end - beg
+        for i in xrange(beg, end):
+            if unicodedata.east_asian_width(s[i]) in ("W", "F", "A"):
+                dlen += 1
+        debug.log(s.encode("utf-8"), dlen)
+        return dlen
+
     def refresh_display(self):
         self.screen.erase()
         self.display_results()
@@ -437,21 +450,9 @@ class Percol(object):
         try:
             # move caret
             if caret_x >= 0 and caret_y >= 0:
-                self.screen.move(caret_y, caret_x + self.caret_display_offset)
+                self.screen.move(caret_y, caret_x + self.display_len(self.query, 0, self.caret))
         except curses.error:
             pass
-
-    @property
-    def caret_display_offset(self):
-        q = self.query
-        offset = self.caret
-
-        for pos in xrange(0, offset):
-            wtype = unicodedata.east_asian_width(q[pos])
-            if wtype in ("W", "F", "A"):
-                offset += 1
-
-        return offset
 
     # default value
     last_query_position = -1
