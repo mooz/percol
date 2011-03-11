@@ -56,7 +56,12 @@ class Percol(object):
         "keyword"       : 4,
     }
 
-    def __init__(self, descriptors = None, collection = None, finder = None, actions = None):
+    def __init__(self,
+                 descriptors = None, collection = None,
+                 finder = None, actions = None,
+                 encoding = "utf-8"):
+        self.encoding = encoding
+
         if descriptors is None:
             self.stdin  = sys.stdin
             self.stdout = sys.stdout
@@ -151,6 +156,10 @@ class Percol(object):
     def needed_count(self):
         return self.total_page_number * self.RESULTS_DISPLAY_MAX - self.results_count
 
+    @property
+    def query_string(self):
+        return self.query.encode(self.encoding)
+
     # ============================================================ #
     # Statuses
     # ============================================================ #
@@ -183,8 +192,8 @@ class Percol(object):
 
     def create_status(self, finder):
         return {
-            "query"             : "",
-            "old_query"         : "",
+            "query"             : "".decode(self.encoding),
+            "old_query"         : "".decode(self.encoding),
             "index"             : 0,
             "caret"             : 0,
             "marks"             : None,
@@ -217,7 +226,7 @@ class Percol(object):
         self.result_updating_timer = None
 
         def search_and_refresh_display():
-            self.do_search(self.query)
+            self.do_search(self.query_string)
             self.refresh_display()
 
         while True:
@@ -436,14 +445,14 @@ class Percol(object):
     def handle_format_prompt_query(self, matchobj):
         # -1 is from first '%' of %([a-zA-Z%])
         self.last_query_position = matchobj.start(1) - 1
-        return self.status["query"]
+        return self.query_string
 
     prompt_replacees = {
         "%" : lambda self, matchobj: "%",
         # display query and caret
         "q" : lambda self, matchobj: self.handle_format_prompt_query(matchobj),
         # display query but does not display caret
-        "Q" : lambda self, matchobj: self.status["query"],
+        "Q" : lambda self, matchobj: self.query_string,
         "n" : lambda self, matchobj: self.page_number,
         "N" : lambda self, matchobj: self.total_page_number,
         "i" : lambda self, matchobj: self.absolute_index + (1 if self.results_count > 0 else 0),
@@ -520,7 +529,7 @@ class Percol(object):
     # ------------------------------------------------------------ #
 
     def set_caret(self, caret):
-        q_len = len(self.status["query"])
+        q_len = len(self.query)
 
         self.status["caret"] = max(min(caret, q_len), 0)
 
@@ -528,7 +537,7 @@ class Percol(object):
         self.set_caret(0)
 
     def end_of_line(self):
-        self.set_caret(len(self.status["query"]))
+        self.set_caret(len(self.query))
 
     def backward_char(self):
         self.set_caret(self.status["caret"] - 1)
@@ -541,13 +550,13 @@ class Percol(object):
     # ------------------------------------------------------------ #
 
     def append_char_to_query(self, ch):
-        self.status["query"] += chr(ch)
+        self.query += chr(ch).decode(self.encoding)
         self.forward_char()
 
     def insert_char(self, ch):
-        q = self.status["query"]
+        q = self.query
         c = self.status["caret"]
-        self.status["query"] = q[:c] + chr(ch) + q[c:]
+        self.query = q[:c] + chr(ch).decode(self.encoding) + q[c:]
         self.set_caret(c + 1)
 
     def insert_string(self, string):
@@ -562,13 +571,13 @@ class Percol(object):
 
     def delete_forward_char(self):
         caret = self.status["caret"]
-        self.status["query"] = self.status["query"][:caret] + self.status["query"][caret + 1:]
+        self.query = self.query[:caret] + self.query[caret + 1:]
 
     def delete_end_of_line(self):
-        self.status["query"] = self.status["query"][:self.status["caret"]]
+        self.query = self.query[:self.status["caret"]]
 
     def clear_query(self):
-        self.status["query"] = ""
+        self.query = "".decode(self.encoding)
 
     # ------------------------------------------------------------ #
     # Text > kill
@@ -649,6 +658,10 @@ class Percol(object):
         if ch == curses.KEY_RESIZE:
             self.handle_resize()
             key = "<RESIZE>"
+        elif ch != -1 and self.keyhandler.is_utf8_multibyte_key(ch):
+            ukey = self.keyhandler.get_utf8_key_for(ch)
+            key  = ukey.encode(self.encoding)
+            self.insert_string(ukey)
         else:
             k = self.keyhandler.get_key_for(ch)
 
