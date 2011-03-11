@@ -350,7 +350,7 @@ class Percol(object):
         self.screen.addnstr(y, x, s, self.WIDTH - x, color)
 
         # add padding
-        s_len = len(s)
+        s_len = self.display_len(s.decode(self.encoding))
         padding_len = self.WIDTH - (x + s_len)
         if padding_len > 0:
             try:
