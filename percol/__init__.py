@@ -550,6 +550,11 @@ class Percol(object):
         self.status["query"] = q[:c] + chr(ch) + q[c:]
         self.set_caret(c + 1)
 
+    def insert_string(self, string):
+        caret_pos  = self.caret + len(string)
+        self.query = self.query[:self.caret] + string + self.query[self.caret:]
+        self.caret = caret_pos
+
     def delete_backward_char(self):
         if self.status["caret"] > 0:
             self.backward_char()
@@ -576,9 +581,7 @@ class Percol(object):
     killed = None                  # default
     def yank(self):
         if self.killed:
-            caret_pos  = self.caret + len(self.killed)
-            self.query = self.query[:self.caret] + self.killed + self.query[self.caret:]
-            self.caret = caret_pos
+            self.insert_string(self.killed)
 
     # ------------------------------------------------------------ #
     # Finish / Cancel
