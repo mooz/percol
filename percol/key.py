@@ -16,7 +16,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-import curses, debug
+import curses, array, debug
 
 SPECIAL_KEYS = {
     curses.KEY_A1        : "<a1>",
@@ -202,6 +202,24 @@ class KeyHandler:
         elif ch == -1:
             k = "C-c"
         return k
+
+    def get_utf8_key_for(self, ch):
+        buf = array.array("B", [ch])
+        buf.extend(self.screen.getch() for i in xrange(1, self.get_utf8_count(ch)))
+        return buf.tostring().decode("utf-8")
+
+    def is_utf8_multibyte_key(self, ch):
+        return (ch & 0b11000000) == 0b11000000
+
+    def get_utf8_count(self, ch):
+        count   = 0
+        current = ch
+
+        while current & 0b10000000:
+            current <<= 1
+            count += 1
+
+        return count
 
     def displayable_key_to_str(self, ch):
         return chr(ch)
