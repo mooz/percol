@@ -313,9 +313,12 @@ class Percol(object):
         with self.WithModeContext(status_idx):
             results = self.get_marked_results_with_index()
             if not results:
-                index  = self.index
-                result = self.results[index]
-                results.append((result[0], index, result[2]))
+                try:
+                    index = self.index
+                    result = self.results[index]
+                    results.append((result[0], index, result[2]))
+                except:
+                    pass
         return results
 
     # ============================================================ #
