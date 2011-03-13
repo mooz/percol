@@ -67,6 +67,7 @@ if __name__ == "__main__":
         exit_program("""Error: No tty name is given and failed to guess (maybe stderr is redirecred)""")
 
     # decide which encoding to use
+    locale.setlocale(locale.LC_ALL, '')
     encoding = locale.getpreferredencoding()
     if options.encoding:
         encoding = options.encoding
