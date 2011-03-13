@@ -34,11 +34,6 @@ from percol import Percol
 from percol import tty
 from percol import debug
 
-def set_locale():
-    locale.setlocale(locale.LC_ALL, '')
-    code = locale.getpreferredencoding()
-    return code
-
 def load_rc(percol, path = None):
     if path is None:
         path = os.path.expanduser("~/.percol.d/rc.py")
@@ -51,8 +46,9 @@ def load_rc(percol, path = None):
         debug.log("exception", e)
 
 def setup_options(parser):
-    parser.add_option("--tty", dest = "tty", help = "path to the TTY (usually, $TTY)", metavar = "TTY")
-    parser.add_option("--rcfile", dest = "rcfile", help = "path to the settings file", metavar = "RC")
+    parser.add_option("--tty", dest = "tty", help = "path to the TTY (usually, the value of $TTY)")
+    parser.add_option("--rcfile", dest = "rcfile", help = "path to the settings file")
+    parser.add_option("--encoding", dest = "encoding", help = "encoding for input and output (default 'utf8').")
 
 if __name__ == "__main__":
     parser = OptionParser(usage = "Usage: %prog [options] [FILE]")
@@ -65,23 +61,28 @@ if __name__ == "__main__":
         parser.print_help()
         exit(1)
 
+    # get ttyname
     ttyname = options.tty or tty.get_ttyname()
     if not ttyname:
         exit_program("""Error: No tty name is given and failed to guess (maybe stderr is redirecred)""")
 
-    code = set_locale()
+    # decide which encoding to use
+    encoding = locale.getpreferredencoding()
+    if options.encoding:
+        encoding = options.encoding
 
     with open(ttyname, "r+w") as tty_f:
         if not tty_f.isatty():
             exit_program("Error: {0} is not a tty file".format(ttyname))
 
+        # read input
         filename = args[0] if len(args) > 0 else None
-
         if filename:
             with open(filename, "r") as f:
-                collection = f.read().split("\n")
+                content = f.read()
         else:
-            collection = sys.stdin.read().split("\n")
+            content = sys.stdin.read()
+        collection = unicode(content, encoding, 'replace').split("\n")
 
         # setup actions
         import percol.actions as actions
@@ -90,6 +91,7 @@ if __name__ == "__main__":
 
         with Percol(descriptors = tty.reconnect_descriptors(tty_f),
                     collection = collection,
-                    actions = acts) as percol:
+                    actions = acts,
+                    encoding = encoding) as percol:
             load_rc(percol, options.rcfile)
             percol.loop()
