@@ -32,6 +32,7 @@ import math
 import re
 import threading
 import unicodedata
+import types
 
 from contextlib import contextmanager
 from itertools import islice
@@ -158,10 +159,6 @@ class Percol(object):
     def needed_count(self):
         return self.total_page_number * self.RESULTS_DISPLAY_MAX - self.results_count
 
-    @property
-    def query_string(self):
-        return self.query.encode(self.encoding)
-
     # ============================================================ #
     # Statuses
     # ============================================================ #
@@ -194,8 +191,8 @@ class Percol(object):
 
     def create_status(self, finder):
         return {
-            "query"             : "".decode(self.encoding),
-            "old_query"         : "".decode(self.encoding),
+            "query"             : u"",
+            "old_query"         : u"",
             "index"             : 0,
             "caret"             : 0,
             "marks"             : None,
@@ -228,7 +225,7 @@ class Percol(object):
         self.result_updating_timer = None
 
         def search_and_refresh_display():
-            self.do_search(self.query_string)
+            self.do_search(self.query)
             self.refresh_display()
 
         while True:
@@ -258,9 +255,9 @@ class Percol(object):
         self.update_screen_size()
         # XXX: init results. ugly.
         self.mode_index = MODE_ACTION
-        self.do_search("")
+        self.do_search(u"")
         self.mode_index = MODE_POWDER
-        self.do_search("")
+        self.do_search(u"")
 
         self.refresh_display()
 
@@ -325,6 +322,10 @@ class Percol(object):
     # Display
     # ============================================================ #
 
+    def addnstr(self, y, x, s, n, color):
+        raw_s = s.encode(self.encoding) if s.__class__ == types.UnicodeType else s
+        self.screen.addnstr(y, x, raw_s, self.WIDTH - x, color)
+
     def display_len(self, s, beg = None, end = None):
         if beg is None:
             beg = 0
@@ -335,7 +336,6 @@ class Percol(object):
         for i in xrange(beg, end):
             if unicodedata.east_asian_width(s[i]) in ("W", "F", "A"):
                 dlen += 1
-        debug.log(s.encode("utf-8"), dlen)
         return dlen
 
     def refresh_display(self):
@@ -348,14 +348,14 @@ class Percol(object):
         if color is None:
             color = curses.color_pair(self.colors["normal_line"])
 
-        self.screen.addnstr(y, x, s, self.WIDTH - x, color)
+        self.addnstr(y, x, s, self.WIDTH - x, color)
 
         # add padding
-        s_len = self.display_len(s.decode(self.encoding))
+        s_len = self.display_len(s)
         padding_len = self.WIDTH - (x + s_len)
         if padding_len > 0:
             try:
-                self.screen.addnstr(y, x + s_len, " " * padding_len, padding_len, color)
+                self.addnstr(y, x + s_len, " " * padding_len, padding_len, color)
             except curses.error as e:
                 # XXX: sometimes, we get error
                 pass
@@ -381,10 +381,10 @@ class Percol(object):
         for (subq, match_info) in find_info:
             for x_offset, subq_len in match_info:
                 try:
-                    self.screen.addnstr(y, x_offset,
-                                        line[x_offset:x_offset + subq_len],
-                                        self.WIDTH - x_offset,
-                                        keyword_style)
+                    self.addnstr(y, x_offset,
+                                 line[x_offset:x_offset + subq_len],
+                                 self.WIDTH - x_offset,
+                                 keyword_style)
                 except curses.error as e:
                     debug.log("addnstr", str(e) + " ({0})".format(y))
                     pass
@@ -417,20 +417,20 @@ class Percol(object):
     def PROMPT_OFFSET_V(self):
         return 0                        # self.RESULTS_DISPLAY_MAX
 
-    PROMPT  = "QUERY> %q"
-    RPROMPT = "(%i/%I) [%n/%N]"
+    PROMPT  = u"QUERY> %q"
+    RPROMPT = u"(%i/%I) [%n/%N]"
 
     def display_prompt(self):
         # display underline
         style = curses.color_pair(self.colors["normal_line"]) | curses.A_UNDERLINE
-        self.screen.addnstr(self.PROMPT_OFFSET_V, 0, " " * self.WIDTH, self.WIDTH, style)
+        self.addnstr(self.PROMPT_OFFSET_V, 0, " " * self.WIDTH, self.WIDTH, style)
 
         caret_x = -1
         caret_y = -1
 
         try:
             rprompt = self.format_prompt_string(self.RPROMPT)
-            self.screen.addnstr(self.PROMPT_OFFSET_V, self.WIDTH - len(rprompt), rprompt, len(rprompt), style)
+            self.addnstr(self.PROMPT_OFFSET_V, self.WIDTH - len(rprompt), rprompt, len(rprompt), style)
             # when %q is specified, record its position
             if self.last_query_position >= 0:
                 caret_x = self.WIDTH - len(rprompt) + self.last_query_position
@@ -440,7 +440,7 @@ class Percol(object):
 
         try:
             prompt = self.format_prompt_string(self.PROMPT)
-            self.screen.addnstr(self.PROMPT_OFFSET_V, 0, prompt, self.WIDTH, style)
+            self.addnstr(self.PROMPT_OFFSET_V, 0, prompt, self.WIDTH, style)
             # when %q is specified, record its position
             if self.last_query_position >= 0:
                 caret_x = self.last_query_position
@@ -460,14 +460,14 @@ class Percol(object):
     def handle_format_prompt_query(self, matchobj):
         # -1 is from first '%' of %([a-zA-Z%])
         self.last_query_position = matchobj.start(1) - 1
-        return self.query_string
+        return self.query
 
     prompt_replacees = {
         "%" : lambda self, matchobj: "%",
         # display query and caret
         "q" : lambda self, matchobj: self.handle_format_prompt_query(matchobj),
         # display query but does not display caret
-        "Q" : lambda self, matchobj: self.query_string,
+        "Q" : lambda self, matchobj: self.query,
         "n" : lambda self, matchobj: self.page_number,
         "N" : lambda self, matchobj: self.total_page_number,
         "i" : lambda self, matchobj: self.absolute_index + (1 if self.results_count > 0 else 0),
@@ -482,9 +482,11 @@ class Percol(object):
         def formatter(matchobj):
             al = matchobj.group(1)
             if self.prompt_replacees.has_key(al):
-                return str(self.prompt_replacees[al](self, matchobj))
+                res = self.prompt_replacees[al](self, matchobj)
+                return (res if res.__class__ == types.UnicodeType
+                        else unicode(str(res), self.encoding, 'replace'))
             else:
-                return ""
+                return u""
 
         return re.sub(r'%([a-zA-Z%])', formatter, s)
 
@@ -592,7 +594,7 @@ class Percol(object):
         self.query = self.query[:self.status["caret"]]
 
     def clear_query(self):
-        self.query = "".decode(self.encoding)
+        self.query = u""
 
     # ------------------------------------------------------------ #
     # Text > kill
