@@ -31,13 +31,12 @@ import curses
 import math
 import re
 import threading
-import unicodedata
 import types
 
 from contextlib import contextmanager
 from itertools import islice
 
-import key, debug, action
+import key, debug, action, display
 from finder import FinderMultiQueryString, FinderMultiQueryRegex
 
 class TerminateLoop(Exception):
@@ -326,18 +325,6 @@ class Percol(object):
         raw_s = s.encode(self.encoding) if s.__class__ == types.UnicodeType else s
         self.screen.addnstr(y, x, raw_s, self.WIDTH - x, color)
 
-    def display_len(self, s, beg = None, end = None):
-        if beg is None:
-            beg = 0
-        if end is None:
-            end = len(s)
-
-        dlen = end - beg
-        for i in xrange(beg, end):
-            if unicodedata.east_asian_width(s[i]) in ("W", "F", "A"):
-                dlen += 1
-        return dlen
-
     def refresh_display(self):
         self.screen.erase()
         self.display_results()
@@ -351,7 +338,7 @@ class Percol(object):
         self.addnstr(y, x, s, self.WIDTH - x, color)
 
         # add padding
-        s_len = self.display_len(s)
+        s_len = display.display_len(s)
         padding_len = self.WIDTH - (x + s_len)
         if padding_len > 0:
             try:
@@ -381,9 +368,10 @@ class Percol(object):
         for (subq, match_info) in find_info:
             for x_offset, subq_len in match_info:
                 try:
-                    self.addnstr(y, x_offset,
+                    x_offset_real = display.display_len(line, 0, x_offset)
+                    self.addnstr(y, x_offset_real,
                                  line[x_offset:x_offset + subq_len],
-                                 self.WIDTH - x_offset,
+                                 self.WIDTH - x_offset_real,
                                  keyword_style)
                 except curses.error as e:
                     debug.log("addnstr", str(e) + " ({0})".format(y))
@@ -451,7 +439,7 @@ class Percol(object):
         try:
             # move caret
             if caret_x >= 0 and caret_y >= 0:
-                self.screen.move(caret_y, caret_x + self.display_len(self.query, 0, self.caret))
+                self.screen.move(caret_y, caret_x + display.display_len(self.query, 0, self.caret))
         except curses.error:
             pass
 
