@@ -79,7 +79,7 @@ class Percol(object):
         self.collection = collection
         self.actions    = actions
 
-        self.result_handling_lock = threading.Lock()
+        self.global_lock = threading.Lock()
 
     def __enter__(self):
         self.screen     = curses.initscr()
@@ -235,7 +235,7 @@ class Percol(object):
                     # search again
                     self.old_query = self.query
 
-                    with self.result_handling_lock:
+                    with self.global_lock:
                         if not self.result_updating_timer is None:
                             # clear timer
                             self.result_updating_timer.cancel()
@@ -265,7 +265,7 @@ class Percol(object):
     # ============================================================ #
 
     def do_search(self, query):
-        with self.result_handling_lock:
+        with self.global_lock:
             self.index = 0
 
             if self.results_cache.has_key(query):
@@ -378,7 +378,7 @@ class Percol(object):
                     pass
 
     def display_results(self):
-        with self.result_handling_lock:
+        with self.global_lock:
             voffset = self.RESULT_OFFSET_V
 
             abs_head = self.absolute_page_head
