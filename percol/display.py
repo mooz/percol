@@ -18,8 +18,12 @@
 #
 
 import unicodedata
+import types
 
 def display_len(s, beg = None, end = None):
+    if s.__class__ != types.UnicodeType:
+        return len(s)
+
     if beg is None:
         beg = 0
     if end is None:
