@@ -31,6 +31,6 @@ def display_len(s, beg = None, end = None):
 
     dlen = end - beg
     for i in xrange(beg, end):
-        if unicodedata.east_asian_width(s[i]) in ("W", "F", "A"):
+        if unicodedata.east_asian_width(s[i]) in ("W", "F"):
             dlen += 1
     return dlen
