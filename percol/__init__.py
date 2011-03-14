@@ -664,6 +664,8 @@ class Percol(object):
         if ch == curses.KEY_RESIZE:
             self.handle_resize()
             key = "<RESIZE>"
+            # XXX: trash -1 (it seems that resize key sends -1)
+            debug.log("trashed", self.keyhandler.get_key_for(self.screen.getch()))
         elif ch != -1 and self.keyhandler.is_utf8_multibyte_key(ch):
             ukey = self.keyhandler.get_utf8_key_for(ch)
             key  = ukey.encode(self.encoding)
