@@ -236,6 +236,7 @@ class Percol(object):
                     self.old_query = self.query
 
                     with self.global_lock:
+                        # critical section
                         if not self.result_updating_timer is None:
                             # clear timer
                             self.result_updating_timer.cancel()
@@ -326,10 +327,11 @@ class Percol(object):
         self.screen.addnstr(y, x, raw_s, self.WIDTH - x, color)
 
     def refresh_display(self):
-        self.screen.erase()
-        self.display_results()
-        self.display_prompt()
-        self.screen.refresh()
+        with self.global_lock:
+            self.screen.erase()
+            self.display_results()
+            self.display_prompt()
+            self.screen.refresh()
 
     def display_line(self, y, x, s, color = None):
         if color is None:
@@ -378,20 +380,19 @@ class Percol(object):
                     pass
 
     def display_results(self):
-        with self.global_lock:
-            voffset = self.RESULT_OFFSET_V
+        voffset = self.RESULT_OFFSET_V
 
-            abs_head = self.absolute_page_head
-            abs_tail = self.absolute_page_tail
+        abs_head = self.absolute_page_head
+        abs_tail = self.absolute_page_tail
 
-            for pos, result in islice(enumerate(self.results), abs_head, abs_tail):
-                rel_pos = pos - abs_head
-                try:
-                    self.display_result(rel_pos + voffset, result,
-                                        is_current = pos == self.index,
-                                        is_marked = self.status["marks"][pos])
-                except curses.error as e:
-                    debug.log("display_results", str(e))
+        for pos, result in islice(enumerate(self.results), abs_head, abs_tail):
+            rel_pos = pos - abs_head
+            try:
+                self.display_result(rel_pos + voffset, result,
+                                    is_current = pos == self.index,
+                                    is_marked = self.status["marks"][pos])
+            except curses.error as e:
+                debug.log("display_results", str(e))
 
     # ============================================================ #
     # Prompt
