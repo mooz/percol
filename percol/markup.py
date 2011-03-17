@@ -59,8 +59,15 @@ class MarkupParser(object):
             return None
 
     def parse_string(self):
+        escaped = False
+
         for c in self.get_next_chars():
-            if c == '<':
+            if escaped:
+                escaped = False
+                self.buffer.append(c)
+            elif c == '\\':
+                    escaped = True
+            elif c == '<':
                 self.consume_token()
 
                 if self.peek_next_char() == '/':
@@ -81,9 +88,14 @@ class MarkupParser(object):
 
     def parse_tag(self):
         buf = []
+        escaped = False
 
         for c in self.get_next_chars():
-            if c == '>':
+            if escaped:
+                buf.append(c)
+            elif c == '\\':
+                escaped = True
+            elif c == '>':
                 return "".join(buf)
             else:
                 buf.append(c)
@@ -130,9 +142,10 @@ if __name__ == "__main__":
         "hello",
         "hello <red>red</red> normal",
         "hello <on_green>with background green <bold>this is bold <red>and red</red></bold></on_green> then, normal",
-        "baaaaa<green>a<blue>aa</green>a</blue>aaaaaaa",
+        "baaaaa<green>a<blue>aa</green>a</blue>aaaaaaa", # unmatch
         "baaaaa<green>a<blue>aa</blue>a</green>aaaaaaa",
-        u"マルチ<magenta>バイト<blue>文字</blue>の</magenta>テスト",
+        "hello \\<red>red\\</red> normal",  # escape
+        u"マルチ<magenta>バイト<blue>文字</blue>の</magenta>テスト", # multibyte
     )
 
     for test in tests:
