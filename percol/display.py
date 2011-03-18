@@ -164,7 +164,7 @@ class Display(object):
     def add_aligned_string_markup(self, markup,
                                   y_align = "top", x_align = "left",
                                   y_offset = 0, x_offset = 0,
-                                  fill = False, fill_char = " ", fill_style = 0):
+                                  fill = False, fill_char = " ", fill_style = None):
         tokens       = self.parser.parse(markup)
         display_lens = [self.display_len(s) for (s, attrs) in tokens]
         whole_len    = sum(display_lens)
@@ -185,7 +185,7 @@ class Display(object):
     def add_aligned_string(self, s,
                            y_align = "top", x_align = "left",
                            y_offset = 0, x_offset = 0,
-                           style = 0,
+                           style = None,
                            fill = False, fill_char = " ", fill_style = None):
         display_len = self.display_len(s)
 
@@ -206,12 +206,16 @@ class Display(object):
             self.add_string(fill_char * filling_len, pos_y, pos_x_beg, style)
 
     def attrs_to_style(self, attrs):
+        if attrs is None:
+            return 0
+
         style = self.get_color_pair(get_fg_color(attrs), get_bg_color(attrs))
         for attr in get_attributes(attrs):
             style |= attr
+
         return style
 
-    def add_string(self, s, pos_y = 0, pos_x = 0, style = 0, n = -1):
+    def add_string(self, s, pos_y = 0, pos_x = 0, style = None, n = -1):
         self.addnstr(pos_y, pos_x, s, n if n >= 0 else self.WIDTH - pos_x, style)
 
     # ============================================================ #
@@ -228,6 +232,9 @@ class Display(object):
         return s.encode(self.encoding) if s.__class__ == types.UnicodeType else s
 
     def addnstr(self, y, x, s, n, style):
+        if style.__class__ != types.IntType:
+            style = self.attrs_to_style(style)
+
         try:
             self.screen.addnstr(y, x, self.get_raw_string(s), n, style)
             return True

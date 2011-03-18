@@ -36,7 +36,7 @@ import types
 from contextlib import contextmanager
 from itertools import islice
 
-import key, debug, action, display
+import key, debug, action, display, theme
 from finder import FinderMultiQueryString, FinderMultiQueryRegex
 
 class TerminateLoop(Exception):
@@ -51,13 +51,6 @@ MODE_ACTION = 1
 MODE_COUNT  = 2
 
 class Percol(object):
-    colors = {
-        "normal_line"   : 1,
-        "selected_line" : 2,
-        "marked_line"   : 3,
-        "keyword"       : 4,
-    }
-
     def __init__(self,
                  descriptors = None, collection = None,
                  finder = None, actions = None,
@@ -83,14 +76,8 @@ class Percol(object):
 
     def __enter__(self):
         self.screen     = curses.initscr()
+        self.display    = display.Display(self.screen)
         self.keyhandler = key.KeyHandler(self.screen)
-
-        curses.start_color()
-        # foreground, background
-        curses.init_pair(self.colors["normal_line"]     , curses.COLOR_WHITE,  curses.COLOR_BLACK)   # normal
-        curses.init_pair(self.colors["selected_line"]   , curses.COLOR_WHITE,  curses.COLOR_MAGENTA) # line selected
-        curses.init_pair(self.colors["marked_line"]     , curses.COLOR_BLACK,  curses.COLOR_CYAN)    # line marked
-        curses.init_pair(self.colors["keyword"]         , curses.COLOR_YELLOW, curses.COLOR_BLACK)   # keyword
 
         signal.signal(signal.SIGINT, lambda signum, frame: None)
 
