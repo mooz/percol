@@ -76,7 +76,7 @@ class Percol(object):
 
     def __enter__(self):
         self.screen     = curses.initscr()
-        self.display    = display.Display(self.screen)
+        self.display    = display.Display(self.screen, self.encoding)
         self.keyhandler = key.KeyHandler(self.screen)
 
         signal.signal(signal.SIGINT, lambda signum, frame: None)
@@ -106,16 +106,13 @@ class Percol(object):
                 except:
                     pass
 
-    def update_screen_size(self):
-        self.HEIGHT, self.WIDTH = self.screen.getmaxyx()
-
     # ============================================================ #
     # Pager attributes
     # ============================================================ #
 
     @property
     def RESULTS_DISPLAY_MAX(self):
-        return self.HEIGHT - 1
+        return self.display.HEIGHT - 1
 
     @property
     def page_number(self):
@@ -239,7 +236,6 @@ class Percol(object):
                 break
 
     def init_display(self):
-        self.update_screen_size()
         # XXX: init results. ugly.
         self.mode_index = MODE_ACTION
         self.do_search(u"")
@@ -309,59 +305,40 @@ class Percol(object):
     # Display
     # ============================================================ #
 
-    def addnstr(self, y, x, s, n, color):
-        raw_s = s.encode(self.encoding) if s.__class__ == types.UnicodeType else s
-        self.screen.addnstr(y, x, raw_s, self.WIDTH - x, color)
-
     def refresh_display(self):
         with self.global_lock:
-            self.screen.erase()
+            self.display.erase()
             self.display_results()
             self.display_prompt()
-            self.screen.refresh()
+            self.display.refresh()
 
-    def display_line(self, y, x, s, color = None):
-        if color is None:
-            color = curses.color_pair(self.colors["normal_line"])
-
-        self.addnstr(y, x, s, self.WIDTH - x, color)
-
-        # add padding
-        s_len = display.display_len(s)
-        padding_len = self.WIDTH - (x + s_len)
-        if padding_len > 0:
-            try:
-                self.addnstr(y, x + s_len, " " * padding_len, padding_len, color)
-            except curses.error as e:
-                # XXX: sometimes, we get error
-                pass
+    def display_line(self, y, x, s, style = None):
+        if style is None:
+            style = theme.CANDIDATES_LINE_BASIC
+        self.display.add_aligned_string(s, y_offset = y, x_offset = x, style = style, fill = True)
 
     def display_result(self, y, result, is_current = False, is_marked = False):
         line, find_info, abs_idx = result
 
         if is_current:
-            line_style = curses.color_pair(self.colors["selected_line"])
+            line_style = theme.CANDIDATES_LINE_SELECTED
         elif is_marked:
-            line_style = curses.color_pair(self.colors["marked_line"])
+            line_style = theme.CANDIDATES_LINE_MARKED
         else:
-            line_style = curses.color_pair(self.colors["normal_line"])
+            line_style = theme.CANDIDATES_LINE_BASIC
 
-        keyword_style = curses.A_BOLD
-        if is_current or is_marked:
-            keyword_style |= line_style
-        else:
-            keyword_style |= curses.color_pair(self.colors["keyword"])
+        keyword_style = theme.CANDIDATES_LINE_QUERY + line_style
 
-        self.display_line(y, 0, line, color = line_style)
+        self.display_line(y, 0, line, style = line_style)
 
         for (subq, match_info) in find_info:
             for x_offset, subq_len in match_info:
                 try:
-                    x_offset_real = display.display_len(line, 0, x_offset)
-                    self.addnstr(y, x_offset_real,
-                                 line[x_offset:x_offset + subq_len],
-                                 self.WIDTH - x_offset_real,
-                                 keyword_style)
+                    x_offset_real = self.display.display_len(line, beg = 0, end = x_offset)
+                    self.display.add_string(line[x_offset:x_offset + subq_len],
+                                            pos_y = y,
+                                            pos_x = x_offset_real,
+                                            style = keyword_style)
                 except curses.error as e:
                     debug.log("addnstr", str(e) + " ({0})".format(y))
                     pass
@@ -397,26 +374,29 @@ class Percol(object):
     RPROMPT = u"(%i/%I) [%n/%N]"
 
     def display_prompt(self):
-        # display underline
-        style = curses.color_pair(self.colors["normal_line"]) | curses.A_UNDERLINE
-        self.addnstr(self.PROMPT_OFFSET_V, 0, " " * self.WIDTH, self.WIDTH, style)
+        self.display.add_string(" " * self.display.WIDTH,
+                                pos_y = self.PROMPT_OFFSET_V,
+                                style = curses.A_UNDERLINE)
 
         caret_x = -1
         caret_y = -1
 
         try:
+            # self.display.parser.parse(self.RPROMPT)
             rprompt = self.format_prompt_string(self.RPROMPT)
-            self.addnstr(self.PROMPT_OFFSET_V, self.WIDTH - len(rprompt), rprompt, len(rprompt), style)
+            self.display.add_aligned_string(rprompt, y_offset = self.PROMPT_OFFSET_V, x_align = "right")
+
             # when %q is specified, record its position
             if self.last_query_position >= 0:
-                caret_x = self.WIDTH - len(rprompt) + self.last_query_position
+                caret_x = self.display.WIDTH - len(rprompt) + self.last_query_position
                 caret_y = self.PROMPT_OFFSET_V
         except curses.error:
             pass
 
         try:
             prompt = self.format_prompt_string(self.PROMPT)
-            self.addnstr(self.PROMPT_OFFSET_V, 0, prompt, self.WIDTH, style)
+            self.display.add_aligned_string(prompt, y_offset = self.PROMPT_OFFSET_V)
+
             # when %q is specified, record its position
             if self.last_query_position >= 0:
                 caret_x = self.last_query_position
@@ -427,7 +407,7 @@ class Percol(object):
         try:
             # move caret
             if caret_x >= 0 and caret_y >= 0:
-                self.screen.move(caret_y, caret_x + display.display_len(self.query, 0, self.caret))
+                self.screen.move(caret_y, caret_x + self.display.display_len(self.query, 0, self.caret))
         except curses.error:
             pass
 
@@ -669,9 +649,7 @@ class Percol(object):
         self.last_key = key
 
     def handle_resize(self):
-        # resize
-        self.update_screen_size()
-
+        self.display.update_screen_size()
         # get results
         needed_count = self.needed_count
         if needed_count > 0:
