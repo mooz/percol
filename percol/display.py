@@ -75,19 +75,25 @@ def get_attributes(attrs):
 
 class Display(object):
     def __init__(self, screen, encoding):
-        self.screen = screen
+        self.screen   = screen
         self.encoding = encoding
+        self.parser   = markup.MarkupParser()
+
         curses.start_color()
+
         self.init_color_pairs()
-        self.parser = markup.MarkupParser()
+        self.update_screen_size()
 
-    @property
-    def WIDTH(self):
-        return self.screen.getmaxyx()[1]
+    def update_screen_size(self):
+        self.HEIGHT, self.WIDTH = self.screen.getmaxyx()
 
-    @property
-    def HEIGHT(self):
-        return self.screen.getmaxyx()[0]
+    # @property
+    # def WIDTH(self):
+    #     return self.screen.getmaxyx()[1]
+
+    # @property
+    # def HEIGHT(self):
+    #     return self.screen.getmaxyx()[0]
 
     # ============================================================ #
     # Color Pairs
@@ -227,6 +233,9 @@ class Display(object):
 
     def clear(self):
         self.screen.clear()
+
+    def refresh(self):
+        self.screen.refresh()
 
     def get_raw_string(self, s):
         return s.encode(self.encoding) if s.__class__ == types.UnicodeType else s
