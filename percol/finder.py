@@ -26,6 +26,8 @@ from abc import ABCMeta, abstractmethod
 class Finder(object):
     __metaclass__ = ABCMeta
 
+    smart_narrowing = False
+
     @abstractmethod
     def find(self, query):
         pass
@@ -88,6 +90,8 @@ class FinderMultiQuery(Finder):
 # ============================================================ #
 
 class FinderMultiQueryString(FinderMultiQuery):
+    smart_narrowing = True
+
     def find_query(self, needle, haystack):
         stride = len(needle)
         start  = 0
