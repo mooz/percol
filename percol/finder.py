@@ -32,7 +32,7 @@ class Finder(object):
     smart_narrowing = False
 
     @abstractmethod
-    def find(self, query):
+    def find(self, query, collection = None):
         pass
 
     def get_results(self, query):
@@ -57,11 +57,14 @@ class FinderMultiQuery(Finder):
 
     dummy_res = [["", [(0, 0)]]]
 
-    def find(self, query):
+    def find(self, query, collection = None):
         query_is_empty = query == ""
         use_re = not self.split_re is None
 
-        for idx, line in enumerate(self.collection):
+        if collection is None:
+            collection = self.collection
+
+        for idx, line in enumerate(collection):
             if query_is_empty:
                 res = self.dummy_res
             else:
