@@ -138,10 +138,6 @@ class Percol(object):
     def results_count(self):
         return len(self.status["results"])
 
-    @property
-    def needed_count(self):
-        return self.total_page_number * self.RESULTS_DISPLAY_MAX - self.results_count
-
     # ============================================================ #
     # Statuses
     # ============================================================ #
@@ -180,8 +176,6 @@ class Percol(object):
             "caret"             : 0,
             "marks"             : None,
             "results"           : None,
-            "results_generator" : None,
-            "results_cache"     : {},
             "finder"            : finder,
         }
 
@@ -251,34 +245,8 @@ class Percol(object):
     def do_search(self, query):
         with self.global_lock:
             self.index = 0
-
-            if self.results_cache.has_key(query):
-                self.status["results"], self.status["results_generator"] = self.results_cache[query]
-                # we have to check the cache is complete or not
-                needed_count = self.needed_count
-                if needed_count > 0:
-                    self.get_more_results(count = needed_count)
-            else:
-                self.status["results_generator"] = self.finder.find(query)
-                self.status["results"] = [result for result
-                                          in islice(self.status["results_generator"], self.RESULTS_DISPLAY_MAX)]
-                # cache results and generator
-                self.results_cache[query] = self.status["results"], self.status["results_generator"]
-
-            self.status["marks"] = [False] * self.results_count
-
-    def get_more_results(self, count = None):
-        if count is None:
-            count = self.RESULTS_DISPLAY_MAX
-
-        results = [result for result in islice(self.status["results_generator"], count)]
-        got_results_count = len(results)
-
-        if got_results_count > 0:
-            self.status["results"].extend(results)
-            self.status["marks"].extend([False] * got_results_count)
-
-        return got_results_count
+            self.status["results"] = self.finder.get_results(query)
+            self.status["marks"]   = [False] * self.results_count
 
     def get_result(self, index):
         try:
@@ -456,9 +424,6 @@ class Percol(object):
     # ------------------------------------------------------------ #
 
     def select_index(self, idx):
-        if idx >= self.results_count:
-            self.get_more_results()
-
         if self.results_count > 0:
             self.index = idx % self.results_count
 
@@ -651,10 +616,6 @@ class Percol(object):
 
     def handle_resize(self):
         self.display.update_screen_size()
-        # get results
-        needed_count = self.needed_count
-        if needed_count > 0:
-            self.get_more_results(count = needed_count)
 
     # ============================================================ #
     # Actions

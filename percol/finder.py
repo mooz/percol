@@ -26,9 +26,20 @@ from abc import ABCMeta, abstractmethod
 class Finder(object):
     __metaclass__ = ABCMeta
 
+    def __init__(self):
+        self.results_cache = {}
+
     @abstractmethod
     def find(self, query):
         pass
+
+    def get_results(self, query):
+        if self.results_cache.has_key(query):
+            return self.results_cache[query]
+        else:
+            results = [result for result in self.find(query)]
+            self.results_cache[query] = results
+            return results
 
 # ============================================================ #
 # Finder > multiquery
@@ -36,6 +47,8 @@ class Finder(object):
 
 class FinderMultiQuery(Finder):
     def __init__(self, collection, split_str = " ", split_re = None):
+        Finder.__init__(self)
+
         self.collection = collection
         self.split_str  = split_str
         self.split_re   = split_re
