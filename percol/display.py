@@ -167,11 +167,13 @@ class Display(object):
 
         return flag
 
-    def add_aligned_string_markup(self, markup,
+    def add_aligned_string_markup(self, markup, **keywords):
+        return self.add_aligned_string_tokens(self.parser.parse(markup), **keywords)
+
+    def add_aligned_string_tokens(self, tokens,
                                   y_align = "top", x_align = "left",
                                   y_offset = 0, x_offset = 0,
                                   fill = False, fill_char = " ", fill_style = None):
-        tokens       = self.parser.parse(markup)
         display_lens = [self.display_len(s) for (s, attrs) in tokens]
         whole_len    = sum(display_lens)
 
@@ -187,6 +189,8 @@ class Display(object):
         if fill:
             self.add_filling(fill_char, pos_y, 0, org_pos_x, fill_style)
             self.add_filling(fill_char, pos_y, pos_x, self.WIDTH, fill_style)
+
+        return pos_y, org_pos_x
 
     def add_aligned_string(self, s,
                            y_align = "top", x_align = "left",
@@ -205,6 +209,8 @@ class Display(object):
                 fill_style = style
             self.add_filling(fill_char, pos_y, 0, pos_x, fill_style)
             self.add_filling(fill_char, pos_y, pos_x + display_len, self.WIDTH, fill_style)
+
+        return pos_y, pos_x
 
     def add_filling(self, fill_char, pos_y, pos_x_beg, pos_x_end, style):
         filling_len = pos_x_end - pos_x_beg
