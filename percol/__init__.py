@@ -364,81 +364,82 @@ class Percol(object):
 
     @property
     def RESULT_OFFSET_V(self):
-        return 1                        # 0
+        return self.PROMPT_OFFSET_V + 1
 
     @property
     def PROMPT_OFFSET_V(self):
-        return 0                        # self.RESULTS_DISPLAY_MAX
+        return 0
 
     PROMPT  = u"QUERY> %q"
     RPROMPT = u"(%i/%I) [%n/%N]"
 
+    def do_display_prompt(self, format,
+                          y_offset = 0, x_offset = 0,
+                          y_align = "top", x_align = "left"):
+        parsed = self.display.parser.parse(format)
+        offset = 0
+        tokens = []
+
+        self.last_query_position = -1
+
+        for s, attrs in parsed:
+            tokens.append((self.format_prompt_string(s, offset), attrs))
+            offset += self.display.display_len(s)
+
+        y, x = self.display.add_aligned_string_tokens(tokens,
+                                                      y_offset = y_offset,
+                                                      x_offset = x_offset,
+                                                      y_align = y_align,
+                                                      x_align = x_align)
+
+        # when %q is specified, record its position
+        if self.last_query_position >= 0:
+            self.caret_x = self.last_query_position + x
+            self.caret_y = self.PROMPT_OFFSET_V
+
     def display_prompt(self):
-        self.display.add_string(" " * self.display.WIDTH,
-                                pos_y = self.PROMPT_OFFSET_V,
-                                style = curses.A_UNDERLINE)
+        self.caret_x = -1
+        self.caret_y = -1
 
-        caret_x = -1
-        caret_y = -1
+        self.do_display_prompt(self.RPROMPT,
+                               y_offset = self.PROMPT_OFFSET_V,
+                               x_align = "right")
 
-        try:
-            # self.display.parser.parse(self.RPROMPT)
-            rprompt = self.format_prompt_string(self.RPROMPT)
-            self.display.add_aligned_string(rprompt, y_offset = self.PROMPT_OFFSET_V, x_align = "right")
-
-            # when %q is specified, record its position
-            if self.last_query_position >= 0:
-                caret_x = self.display.WIDTH - len(rprompt) + self.last_query_position
-                caret_y = self.PROMPT_OFFSET_V
-        except curses.error:
-            pass
-
-        try:
-            prompt = self.format_prompt_string(self.PROMPT)
-            self.display.add_aligned_string(prompt, y_offset = self.PROMPT_OFFSET_V)
-
-            # when %q is specified, record its position
-            if self.last_query_position >= 0:
-                caret_x = self.last_query_position
-                caret_y = self.PROMPT_OFFSET_V
-        except curses.error:
-            pass
+        self.do_display_prompt(self.PROMPT,
+                               y_offset = self.PROMPT_OFFSET_V)
 
         try:
             # move caret
-            if caret_x >= 0 and caret_y >= 0:
-                self.screen.move(caret_y, caret_x + self.display.display_len(self.query, 0, self.caret))
+            if self.caret_x >= 0 and self.caret_y >= 0:
+                self.screen.move(self.caret_y,
+                                 self.caret_x + self.display.display_len(self.query, 0, self.caret))
         except curses.error:
             pass
 
-    # default value
-    last_query_position = -1
-    def handle_format_prompt_query(self, matchobj):
+    def handle_format_prompt_query(self, matchobj, offset):
         # -1 is from first '%' of %([a-zA-Z%])
-        self.last_query_position = matchobj.start(1) - 1
+        self.last_query_position = matchobj.start(1) - 1 + offset
         return self.query
 
     prompt_replacees = {
-        "%" : lambda self, matchobj: "%",
+        "%" : lambda self, **args: "%",
         # display query and caret
-        "q" : lambda self, matchobj: self.handle_format_prompt_query(matchobj),
+        "q" : lambda self, **args: self.handle_format_prompt_query(args["matchobj"], args["offset"]),
         # display query but does not display caret
-        "Q" : lambda self, matchobj: self.query,
-        "n" : lambda self, matchobj: self.page_number,
-        "N" : lambda self, matchobj: self.total_page_number,
-        "i" : lambda self, matchobj: self.absolute_index + (1 if self.results_count > 0 else 0),
-        "I" : lambda self, matchobj: self.results_count,
-        "c" : lambda self, matchobj: self.status["caret"],
-        "k" : lambda self, matchobj: self.last_key
+        "Q" : lambda self, **args: self.query,
+        "n" : lambda self, **args: self.page_number,
+        "N" : lambda self, **args: self.total_page_number,
+        "i" : lambda self, **args: self.absolute_index + (1 if self.results_count > 0 else 0),
+        "I" : lambda self, **args: self.results_count,
+        "c" : lambda self, **args: self.status["caret"],
+        "k" : lambda self, **args: self.last_key
     }
 
-    def format_prompt_string(self, s):
-        self.last_query_position = -1
-
+    def format_prompt_string(self, s, offset = 0):
         def formatter(matchobj):
             al = matchobj.group(1)
             if self.prompt_replacees.has_key(al):
-                res = self.prompt_replacees[al](self, matchobj)
+                res = self.prompt_replacees[al](self, matchobj = matchobj, offset = offset)
                 return (res if res.__class__ == types.UnicodeType
                         else unicode(str(res), self.encoding, 'replace'))
             else:
