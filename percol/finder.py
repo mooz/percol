@@ -35,11 +35,26 @@ class Finder(object):
     def find(self, query, collection = None):
         pass
 
+    def get_smart_collection(self, query):
+        for i in xrange(len(query) - 1, 0, -1):
+            q = query[0:i]
+            if self.results_cache.has_key(q):
+                return (line for (line, res, idx) in self.results_cache[q])
+        return None
+
     def get_results(self, query):
         if self.results_cache.has_key(query):
             return self.results_cache[query]
         else:
-            results = [result for result in self.find(query)]
+            collection = None
+
+            if self.smart_narrowing:
+                collection = self.get_smart_collection(query)
+
+            if collection is None:
+                collection = self.collection
+
+            results = [result for result in self.find(query, collection)]
             self.results_cache[query] = results
             return results
 
