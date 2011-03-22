@@ -74,13 +74,15 @@ class Percol(object):
         self.init_statuses(collection = collection,
                            actions = actions,
                            finder = (finder or FinderMultiQueryString))
+
+        self.query = self.old_query = query or u""
+        self.setup_caret(caret)
+
         self.collection = collection
         self.actions    = actions
+
         self.setup_results()
         self.setup_index(index)
-
-        self.query = query or u""
-        self.setup_caret(caret)
 
     def setup_results(self):
         self.mode_index = MODE_ACTION
