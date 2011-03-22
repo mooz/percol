@@ -92,7 +92,7 @@ if __name__ == "__main__":
                 content = f.read()
         else:
             content = sys.stdin.read()
-        collection = unicode(content, encoding, 'replace').split("\n")
+        candidates = unicode(content, encoding, 'replace').split("\n")
 
         # setup actions
         import percol.actions as actions
@@ -100,7 +100,7 @@ if __name__ == "__main__":
         acts = (actions.output_to_stdout, actions.output_to_stdout_double)
 
         with Percol(descriptors = tty.reconnect_descriptors(tty_f),
-                    collection = collection,
+                    candidates = candidates,
                     actions = acts,
                     query = options.query,
                     caret = options.caret,

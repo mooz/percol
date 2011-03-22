@@ -52,7 +52,7 @@ MODE_COUNT  = 2
 
 class Percol(object):
     def __init__(self,
-                 descriptors = None, collection = None,
+                 descriptors = None, candidates = None,
                  finder = None, actions = None,
                  encoding = "utf-8",
                  query = None,
