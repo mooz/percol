@@ -56,7 +56,10 @@ class Percol(object):
                  finder = None, actions = None,
                  encoding = "utf-8",
                  query = None,
-                 caret = None):
+                 caret = None,
+                 index = None):
+        self.global_lock = threading.Lock()
+
         self.encoding = encoding
 
         if descriptors is None:
@@ -73,10 +76,19 @@ class Percol(object):
                            finder = (finder or FinderMultiQueryString))
         self.collection = collection
         self.actions    = actions
+        self.setup_results()
+        self.setup_index(index)
 
         self.query = query or u""
+        self.setup_caret(caret)
 
-        # set caret position
+    def setup_results(self):
+        self.mode_index = MODE_ACTION
+        self.do_search(u"")             # XXX: we need to arrange act_query?
+        self.mode_index = MODE_POWDER
+        self.do_search(self.query)
+
+    def setup_caret(self, caret):
         if isinstance(caret, types.StringType) or isinstance(caret, types.UnicodeType):
             try:
                 caret = int(caret)
@@ -86,7 +98,16 @@ class Percol(object):
             caret = display.display_len(self.query)
         self.caret = caret
 
-        self.global_lock = threading.Lock()
+    def setup_index(self, index):
+        if index is None or index == "first":
+            self.select_top()
+        elif index == "last":
+            self.select_bottom()
+        else:
+            try:
+                self.select_index(int(index))
+            except:
+                self.select_top()
 
     def __enter__(self):
         self.screen     = curses.initscr()
@@ -211,8 +232,7 @@ class Percol(object):
     SEARCH_DELAY = 0.05
 
     def loop(self):
-        self.init_display()
-
+        self.refresh_display()
         self.result_updating_timer = None
 
         def search_and_refresh_display():
@@ -242,15 +262,6 @@ class Percol(object):
                 self.refresh_display()
             except TerminateLoop as e:
                 break
-
-    def init_display(self):
-        # XXX: init results. ugly.
-        self.mode_index = MODE_ACTION
-        self.do_search(u"")             # XXX: we need to arrange act_query?
-        self.mode_index = MODE_POWDER
-        self.do_search(self.query)
-
-        self.refresh_display()
 
     # ============================================================ #
     # Result handling
