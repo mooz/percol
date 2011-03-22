@@ -34,14 +34,14 @@ from percol import Percol
 from percol import tty
 from percol import debug
 
-def load_rc(percol, path = None):
+def load_rc(percol, path = None, encoding = 'utf-8'):
     if path is None:
         path = os.path.expanduser("~/.percol.d/rc.py")
     if not os.path.exists(path):
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'rc.py')
     try:
         with open(path, 'r') as rc:
-            exec(rc.read(), locals())
+            exec(rc.read().decode(encoding), locals())
     except Exception as e:
         debug.log("exception", e)
 
@@ -103,5 +103,5 @@ if __name__ == "__main__":
                     query = options.query,
                     caret = options.caret,
                     encoding = encoding) as percol:
-            load_rc(percol, options.rcfile)
+            load_rc(percol, options.rcfile, encoding)
             percol.loop()

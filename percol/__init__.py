@@ -417,6 +417,7 @@ class Percol(object):
         "k" : lambda self, **args: self.last_key
     }
 
+    format_pattern = re.compile(ur'%([a-zA-Z%])')
     def format_prompt_string(self, s, offset = 0):
         def formatter(matchobj):
             al = matchobj.group(1)
@@ -427,7 +428,7 @@ class Percol(object):
             else:
                 return u""
 
-        return re.sub(r'%([a-zA-Z%])', formatter, s)
+        return re.sub(self.format_pattern, formatter, s)
 
     # ============================================================ #
     # Commands
