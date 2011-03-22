@@ -20,7 +20,7 @@ In your `.zshrc`, put the lines below.
         function percol_select_history() {
             local tac
             exists gtac && tac=gtac || tac=tac
-            BUFFER="`$tac $HISTFILE | percol --query "$BUFFER"`"
+            BUFFER=`$tac $HISTFILE | percol --query "$BUFFER"`
             CURSOR=$#BUFFER         # move cursor
             zle -R -c               # refresh
         }
