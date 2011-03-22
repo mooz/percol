@@ -56,6 +56,8 @@ def setup_options(parser):
                       help = "pre-input query")
     parser.add_option("--caret-position", dest = "caret",
                       help = "position of the caret (default length of the `query`)")
+    parser.add_option("--initial-index", dest = "index",
+                      help = "position of the initial index of the selection (numeric, \"first\" or \"last\")")
 
 if __name__ == "__main__":
     parser = OptionParser(usage = "Usage: %prog [options] [FILE]")
@@ -102,6 +104,7 @@ if __name__ == "__main__":
                     actions = acts,
                     query = options.query,
                     caret = options.caret,
+                    index = options.index,
                     encoding = encoding) as percol:
             load_rc(percol, options.rcfile, encoding)
             percol.loop()
