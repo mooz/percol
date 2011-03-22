@@ -54,7 +54,9 @@ class Percol(object):
     def __init__(self,
                  descriptors = None, collection = None,
                  finder = None, actions = None,
-                 encoding = "utf-8"):
+                 encoding = "utf-8",
+                 query = None,
+                 caret = None):
         self.encoding = encoding
 
         if descriptors is None:
@@ -71,6 +73,18 @@ class Percol(object):
                            finder = (finder or FinderMultiQueryString))
         self.collection = collection
         self.actions    = actions
+
+        self.query = query or u""
+
+        # set caret position
+        if isinstance(caret, types.StringType) or isinstance(caret, types.UnicodeType):
+            try:
+                caret = int(caret)
+            except ValueError:
+                caret = None
+        if caret is None or caret < 0 or caret > display.display_len(self.query):
+            caret = display.display_len(self.query)
+        self.caret = caret
 
         self.global_lock = threading.Lock()
 
@@ -232,9 +246,9 @@ class Percol(object):
     def init_display(self):
         # XXX: init results. ugly.
         self.mode_index = MODE_ACTION
-        self.do_search(u"")
+        self.do_search(u"")             # XXX: we need to arrange act_query?
         self.mode_index = MODE_POWDER
-        self.do_search(u"")
+        self.do_search(self.query)
 
         self.refresh_display()
 
@@ -302,7 +316,7 @@ class Percol(object):
         for (subq, match_info) in find_info:
             for x_offset, subq_len in match_info:
                 try:
-                    x_offset_real = self.display.display_len(line, beg = 0, end = x_offset)
+                    x_offset_real = display.display_len(line, beg = 0, end = x_offset)
                     self.display.add_string(line[x_offset:x_offset + subq_len],
                                             pos_y = y,
                                             pos_x = x_offset_real,
@@ -352,7 +366,7 @@ class Percol(object):
 
         for s, attrs in parsed:
             tokens.append((self.format_prompt_string(s, offset), attrs))
-            offset += self.display.display_len(s)
+            offset += display.display_len(s)
 
         y, x = self.display.add_aligned_string_tokens(tokens,
                                                       y_offset = y_offset,
@@ -380,7 +394,7 @@ class Percol(object):
             # move caret
             if self.caret_x >= 0 and self.caret_y >= 0:
                 self.screen.move(self.caret_y,
-                                 self.caret_x + self.display.display_len(self.query, 0, self.caret))
+                                 self.caret_x + display.display_len(self.query, 0, self.caret))
         except curses.error:
             pass
 

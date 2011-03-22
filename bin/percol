@@ -46,9 +46,16 @@ def load_rc(percol, path = None):
         debug.log("exception", e)
 
 def setup_options(parser):
-    parser.add_option("--tty", dest = "tty", help = "path to the TTY (usually, the value of $TTY)")
-    parser.add_option("--rcfile", dest = "rcfile", help = "path to the settings file")
-    parser.add_option("--encoding", dest = "encoding", help = "encoding for input and output (default 'utf8').")
+    parser.add_option("--tty", dest = "tty",
+                      help = "path to the TTY (usually, the value of $TTY)")
+    parser.add_option("--rcfile", dest = "rcfile",
+                      help = "path to the settings file")
+    parser.add_option("--encoding", dest = "encoding",
+                      help = "encoding for input and output (default 'utf8')")
+    parser.add_option("--query", dest = "query",
+                      help = "pre-input query")
+    parser.add_option("--caret-position", dest = "caret",
+                      help = "position of the caret (default length of the `query`)")
 
 if __name__ == "__main__":
     parser = OptionParser(usage = "Usage: %prog [options] [FILE]")
@@ -93,6 +100,8 @@ if __name__ == "__main__":
         with Percol(descriptors = tty.reconnect_descriptors(tty_f),
                     collection = collection,
                     actions = acts,
+                    query = options.query,
+                    caret = options.caret,
                     encoding = encoding) as percol:
             load_rc(percol, options.rcfile)
             percol.loop()

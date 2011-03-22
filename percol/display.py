@@ -70,6 +70,26 @@ def get_attributes(attrs):
             yield ATTRS[attr]
 
 # ============================================================ #
+# Unicode
+# ============================================================ #
+
+def display_len(s, beg = None, end = None):
+    if beg is None:
+        beg = 0
+    if end is None:
+        end = len(s)
+
+    if s.__class__ != types.UnicodeType:
+        return end - beg
+
+    dis_len = end - beg
+    for i in xrange(beg, end):
+        if unicodedata.east_asian_width(s[i]) in ("W", "F"):
+            dis_len += 1
+
+    return dis_len
+
+# ============================================================ #
 # Display
 # ============================================================ #
 
@@ -110,26 +130,6 @@ class Display(object):
 
     def get_color_pair(self, fg, bg):
         return curses.color_pair(self.get_pair_number(fg, bg))
-
-    # ============================================================ #
-    # Unicode
-    # ============================================================ #
-
-    def display_len(self, s, beg = None, end = None):
-        if s.__class__ != types.UnicodeType:
-            return len(s)
-
-        if beg is None:
-            beg = 0
-        if end is None:
-            end = len(s)
-
-        dlen = end - beg
-        for i in xrange(beg, end):
-            if unicodedata.east_asian_width(s[i]) in ("W", "F"):
-                dlen += 1
-
-        return dlen
 
     # ============================================================ #
     # Aligned string
@@ -174,8 +174,8 @@ class Display(object):
                                   y_align = "top", x_align = "left",
                                   y_offset = 0, x_offset = 0,
                                   fill = False, fill_char = " ", fill_style = None):
-        display_lens = [self.display_len(s) for (s, attrs) in tokens]
-        whole_len    = sum(display_lens)
+        dis_lens  = [display_len(s) for (s, attrs) in tokens]
+        whole_len = sum(dis_lens)
 
         pos_x = self.get_pos_x(x_align, x_offset, whole_len)
         pos_y = self.get_pos_y(y_align, y_offset)
@@ -184,7 +184,7 @@ class Display(object):
 
         for i, (s, attrs) in enumerate(tokens):
             self.add_string(s, pos_y, pos_x, self.attrs_to_style(attrs), n = len(self.get_raw_string(s)))
-            pos_x += display_lens[i]
+            pos_x += dis_lens[i]
 
         if fill:
             self.add_filling(fill_char, pos_y, 0, org_pos_x, fill_style)
@@ -197,9 +197,9 @@ class Display(object):
                            y_offset = 0, x_offset = 0,
                            style = None,
                            fill = False, fill_char = " ", fill_style = None):
-        display_len = self.display_len(s)
+        dis_len = display_len(s)
 
-        pos_x = self.get_pos_x(x_align, x_offset, display_len)
+        pos_x = self.get_pos_x(x_align, x_offset, dis_len)
         pos_y = self.get_pos_y(y_align, y_offset)
 
         self.add_string(s, pos_y, pos_x, style, n = len(self.get_raw_string(s)))
@@ -208,7 +208,7 @@ class Display(object):
             if fill_style is None:
                 fill_style = style
             self.add_filling(fill_char, pos_y, 0, pos_x, fill_style)
-            self.add_filling(fill_char, pos_y, pos_x + display_len, self.WIDTH, fill_style)
+            self.add_filling(fill_char, pos_y, pos_x + dis_len, self.WIDTH, fill_style)
 
         return pos_y, pos_x
 
