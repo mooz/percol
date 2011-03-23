@@ -36,7 +36,7 @@ import types
 from contextlib import contextmanager
 from itertools import islice
 
-import key, debug, action, display, theme
+import key, debug, action, display, theme, model
 from finder import FinderMultiQueryString, FinderMultiQueryRegex
 
 class TerminateLoop(Exception):
@@ -45,10 +45,6 @@ class TerminateLoop(Exception):
 
     def __str__(self):
         return repr(self.value)
-
-MODE_POWDER = 0
-MODE_ACTION = 1
-MODE_COUNT  = 2
 
 class Percol(object):
     def __init__(self,
@@ -59,7 +55,6 @@ class Percol(object):
                  caret = None,
                  index = None):
         self.global_lock = threading.Lock()
-
         self.encoding = encoding
 
         if descriptors is None:
@@ -71,45 +66,12 @@ class Percol(object):
             self.stdout = descriptors["stdout"]
             self.stderr = descriptors["stderr"]
 
-        self.init_statuses(collection = collection,
-                           actions = actions,
-                           finder = (finder or FinderMultiQueryString))
+        # create models
+        self.model_candidate = Model(collection = candidates, finder = finder,
+                                     query = query, caret = caret, index = index, )
+        self.model_action = Model(collection = actions, finder = finder)
 
-        self.query = self.old_query = query or u""
-        self.setup_caret(caret)
-
-        self.collection = collection
-        self.actions    = actions
-
-        self.setup_results()
-        self.setup_index(index)
-
-    def setup_results(self):
-        self.mode_index = MODE_ACTION
-        self.do_search(u"")             # XXX: we need to arrange act_query?
-        self.mode_index = MODE_POWDER
-        self.do_search(self.query)
-
-    def setup_caret(self, caret):
-        if isinstance(caret, types.StringType) or isinstance(caret, types.UnicodeType):
-            try:
-                caret = int(caret)
-            except ValueError:
-                caret = None
-        if caret is None or caret < 0 or caret > display.display_len(self.query):
-            caret = display.display_len(self.query)
-        self.caret = caret
-
-    def setup_index(self, index):
-        if index is None or index == "first":
-            self.select_top()
-        elif index == "last":
-            self.select_bottom()
-        else:
-            try:
-                self.select_index(int(index))
-            except:
-                self.select_top()
+        self.selected_model = self.model_candidate
 
     def __enter__(self):
         self.screen     = curses.initscr()
