@@ -68,7 +68,7 @@ class Percol(object):
 
         # create models
         self.model_candidate = Model(collection = candidates, finder = finder,
-                                     query = query, caret = caret, index = index, )
+                                     query = query, caret = caret, index = index)
         self.model_action = Model(collection = actions, finder = finder)
 
         self.selected_model = self.model_candidate
@@ -93,101 +93,16 @@ class Percol(object):
         curses.endwin()
         self.execute_action()
 
-    # default
-    args_for_action = None
     def execute_action(self):
-        if self.selected_actions and self.args_for_action:
-            for name, _, act_idx in self.selected_actions:
+        selected_candidates = self.model_candidate.selected_results
+        selected_actions = self.model_action.selected_results
+
+        if selected_candidates and selected_actions:
+            for name, _, action_idx in selected_actions:
                 try:
-                    action = self.actions[act_idx]
-                    if action:
-                        action.act([arg for arg, _, _ in self.args_for_action])
+                    self.actions[action_idx].act([arg for arg, _, _ in selected_candidates])
                 except:
                     pass
-
-    # ============================================================ #
-    # Pager attributes
-    # ============================================================ #
-
-    @property
-    def RESULTS_DISPLAY_MAX(self):
-        return self.display.HEIGHT - 1
-
-    @property
-    def page_number(self):
-        return int(self.index / self.RESULTS_DISPLAY_MAX) + 1
-
-    @property
-    def total_page_number(self):
-        return max(int(math.ceil(1.0 * self.results_count / self.RESULTS_DISPLAY_MAX)), 1)
-
-    @property
-    def absolute_index(self):
-        return self.index
-
-    @property
-    def absolute_page_head(self):
-        return self.RESULTS_DISPLAY_MAX * int(self.absolute_index / self.RESULTS_DISPLAY_MAX)
-
-    @property
-    def absolute_page_tail(self):
-        return self.absolute_page_head + self.RESULTS_DISPLAY_MAX
-
-    @property
-    def results_count(self):
-        return len(self.status["results"])
-
-    # ============================================================ #
-    # Statuses
-    # ============================================================ #
-
-    @contextmanager
-    def preferred_mode(self, prefer_index):
-        original_index = self.mode_index
-        try:
-            self.mode_index = prefer_index
-            yield
-        finally:
-            self.mode_index = original_index
-
-    def init_statuses(self, collection, actions, finder):
-        self.statuses = [None] * 2
-        self.statuses[MODE_POWDER] = self.create_status(finder(collection))
-        self.statuses[MODE_ACTION] = self.create_status(finder([action.desc for action in actions]))
-
-        self.define_accessors_for_status()
-
-    # default
-    mode_index = MODE_POWDER
-
-    @property
-    def status(self):
-        return self.statuses[self.mode_index]
-
-    def switch_mode(self):
-        self.mode_index = (self.mode_index + 1) % MODE_COUNT
-
-    def create_status(self, finder):
-        return {
-            "query"             : u"",
-            "old_query"         : u"",
-            "index"             : 0,
-            "caret"             : 0,
-            "marks"             : None,
-            "results"           : None,
-            "finder"            : finder,
-        }
-
-    def define_accessors_for_status(self):
-        def create_property(k):
-            def getter(self):
-                return self.status[k]
-            def setter(self, v):
-                 self.status[k] = v
-            return getter, setter
-
-        for k in self.create_status(None):
-            setattr(self.__class__, k, property(*create_property(k)))
 
     # ============================================================ #
     # Main Loop
@@ -228,38 +143,7 @@ class Percol(object):
                 break
 
     # ============================================================ #
-    # Result handling
-    # ============================================================ #
-
-    def do_search(self, query):
-        with self.global_lock:
-            self.index = 0
-            self.status["results"] = self.finder.get_results(query)
-            self.status["marks"]   = [False] * self.results_count
-
-    def get_result(self, index):
-        try:
-            return self.results[index][0]
-        except IndexError:
-            return None
-
-    def get_selected_result(self):
-        return self.get_result(self.index)
-
-    def get_objective_results_for_status(self, status_idx):
-        with self.preferred_mode(status_idx):
-            results = self.get_marked_results_with_index()
-            if not results:
-                try:
-                    index = self.index
-                    result = self.results[index]
-                    results.append((result[0], index, result[2]))
-                except:
-                    pass
-        return results
-
-    # ============================================================ #
-    # Display
+    # View :: Display
     # ============================================================ #
 
     def refresh_display(self):
@@ -316,7 +200,7 @@ class Percol(object):
                 debug.log("display_results", str(e))
 
     # ============================================================ #
-    # Prompt
+    # View :: Prompt
     # ============================================================ #
 
     @property
@@ -406,139 +290,11 @@ class Percol(object):
         return re.sub(self.format_pattern, formatter, s)
 
     # ============================================================ #
-    # Commands
-    # ============================================================ #
-
-    # ------------------------------------------------------------ #
-    #  Selections
-    # ------------------------------------------------------------ #
-
-    def select_index(self, idx):
-        if self.results_count > 0:
-            self.index = idx % self.results_count
-
-    def select_next(self):
-        self.select_index(self.index + 1)
-
-    def select_previous(self):
-        self.select_index(self.index - 1)
-
-    def select_next_page(self):
-        self.select_index(self.index + self.RESULTS_DISPLAY_MAX)
-
-    def select_previous_page(self):
-        self.select_index(self.index - self.RESULTS_DISPLAY_MAX)
-
-    def select_top(self):
-        self.select_index(0)
-
-    def select_bottom(self):
-        self.select_index(self.results_count - 1)
-
-    # ------------------------------------------------------------ #
-    # Mark
-    # ------------------------------------------------------------ #
-
-    def get_marked_results_with_index(self):
-        if self.marks:
-            return [(self.results[i][0], i, self.results[i][2])
-                    for i, marked in enumerate(self.marks) if marked]
-        else:
-            return []
-
-    def toggle_mark(self):
-        self.marks[self.index] ^= True
-
-    def toggle_mark_and_next(self):
-        self.toggle_mark()
-        self.select_next()
-
-    # ------------------------------------------------------------ #
-    # Caret position
-    # ------------------------------------------------------------ #
-
-    def set_caret(self, caret):
-        q_len = len(self.query)
-
-        self.status["caret"] = max(min(caret, q_len), 0)
-
-    def beginning_of_line(self):
-        self.set_caret(0)
-
-    def end_of_line(self):
-        self.set_caret(len(self.query))
-
-    def backward_char(self):
-        self.set_caret(self.status["caret"] - 1)
-
-    def forward_char(self):
-        self.set_caret(self.status["caret"] + 1)
-
-    # ------------------------------------------------------------ #
-    # Text
-    # ------------------------------------------------------------ #
-
-    def append_char_to_query(self, ch):
-        self.query += chr(ch).decode(self.encoding)
-        self.forward_char()
-
-    def insert_char(self, ch):
-        q = self.query
-        c = self.status["caret"]
-        self.query = q[:c] + chr(ch).decode(self.encoding) + q[c:]
-        self.set_caret(c + 1)
-
-    def insert_string(self, string):
-        caret_pos  = self.caret + len(string)
-        self.query = self.query[:self.caret] + string + self.query[self.caret:]
-        self.caret = caret_pos
-
-    def delete_backward_char(self):
-        if self.status["caret"] > 0:
-            self.backward_char()
-            self.delete_forward_char()
-
-    def delete_forward_char(self):
-        caret = self.status["caret"]
-        self.query = self.query[:caret] + self.query[caret + 1:]
-
-    def delete_end_of_line(self):
-        self.query = self.query[:self.status["caret"]]
-
-    def clear_query(self):
-        self.query = u""
-
-    # ------------------------------------------------------------ #
-    # Text > kill
-    # ------------------------------------------------------------ #
-
-    def kill_end_of_line(self):
-        self.killed = self.query[self.caret:]
-        self.query  = self.query[:self.caret]
-
-    killed = None                  # default
-    def yank(self):
-        if self.killed:
-            self.insert_string(self.killed)
-
-    # ------------------------------------------------------------ #
-    # Finish / Cancel
-    # ------------------------------------------------------------ #
-
-    def finish(self):
-        self.args_for_action = self.get_objective_results_for_status(MODE_POWDER)
-
-        raise TerminateLoop("Finished")
-
-    def cancel(self):
-        raise TerminateLoop("Canceled")
-
-    # ============================================================ #
-    # Key Handling
+    # Controller :: Key Handling
     # ============================================================ #
 
     keymap = {
-        "C-i"         : switch_mode,
+        "C-i"         : switch_model,
         # text
         "<backspace>" : delete_backward_char,
         "C-h"         : delete_backward_char,
@@ -607,10 +363,16 @@ class Percol(object):
     def handle_resize(self):
         self.display.update_screen_size()
 
-    # ============================================================ #
-    # Actions
-    # ============================================================ #
+    def switch_model(self):
+        if self.selected_model is self.model_action:
+            self.selected_model = self.model_candidate
+        else:
+            self.selected_model = self.model_action
 
-    @property
-    def selected_actions(self):
-        return debug.dump(self.get_objective_results_for_status(MODE_ACTION))
+    def finish(self):
+        self.finished = True
+        raise TerminateLoop("Finished")
+
+    def cancel(self):
+        raise TerminateLoop("Canceled")
+
