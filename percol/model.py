@@ -17,27 +17,18 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-import display
-
 class ModelPercol(object):
     def __init__(query = None, caret = None, index = None, finder = None):
         self.query = self.old_query = query or u""
 
-        self.init_status()
+        self.init_statuses(collection = collection,
+                           actions = actions,
+                           finder = (finder or FinderMultiQueryString))
 
         self.setup_results()
         self.setup_index(index)
 
         self.setup_caret()
-
-    def init_status(self):
-        self.query     = u""
-        self.old_query = u""
-        self.index     = 0
-        self.caret     = 0
-        self.marks     = None
-        self.results   = None
-        self.finder    = finder
 
     def setup_caret(self, caret):
         if isinstance(caret, types.StringType) or isinstance(caret, types.UnicodeType):
@@ -59,182 +50,3 @@ class ModelPercol(object):
                 self.select_index(int(index))
             except:
                 self.select_top()
-
-    # ============================================================ #
-    # Pager attributes
-    # ============================================================ #
-
-    # default value
-    results_display_max = 0
-
-    @property
-    def page_number(self):
-        return int(self.index / self.results_display_max) + 1
-
-    @property
-    def total_page_number(self):
-        return max(int(math.ceil(1.0 * self.results_count / self.results_display_max)), 1)
-
-    @property
-    def absolute_index(self):
-        return self.index
-
-    @property
-    def absolute_page_head(self):
-        return self.results_display_max * int(self.absolute_index / self.results_display_max)
-
-    @property
-    def absolute_page_tail(self):
-        return self.absolute_page_head + self.results_display_max
-
-    @property
-    def results_count(self):
-        return len(self.results)
-
-    # ============================================================ #
-    # Search
-    # ============================================================ #
-
-    def do_search(self, query):
-        with self.global_lock:
-            self.index = 0
-            self.results = self.finder.get_results(query)
-            self.marks   = [False] * self.results_count
-
-    def get_result(self, index):
-        try:
-            return self.results[index][0]
-        except IndexError:
-            return None
-
-    # ============================================================ #
-    # Result handling
-    # ============================================================ #
-
-    @property
-    def selected_results(self):
-        results = self.get_marked_results_with_index()
-        if not results:
-            try:
-                index = self.index
-                result = self.results[index]
-                results.append((result[0], index, result[2]))
-            except:
-                pass
-        return results
-
-    # ============================================================ #
-    # Commands
-    # ============================================================ #
-
-    # ------------------------------------------------------------ #
-    #  Selections
-    # ------------------------------------------------------------ #
-
-    def select_index(self, idx):
-        if self.results_count > 0:
-            self.index = idx % self.results_count
-
-    def select_next(self):
-        self.select_index(self.index + 1)
-
-    def select_previous(self):
-        self.select_index(self.index - 1)
-
-    def select_next_page(self):
-        self.select_index(self.index + self.results_display_max)
-
-    def select_previous_page(self):
-        self.select_index(self.index - self.results_display_max)
-
-    def select_top(self):
-        self.select_index(0)
-
-    def select_bottom(self):
-        self.select_index(self.results_count - 1)
-
-    # ------------------------------------------------------------ #
-    # Mark
-    # ------------------------------------------------------------ #
-
-    def get_marked_results_with_index(self):
-        if self.marks:
-            return [(self.results[i][0], i, self.results[i][2])
-                    for i, marked in enumerate(self.marks) if marked]
-        else:
-            return []
-
-    def toggle_mark(self):
-        self.marks[self.index] ^= True
-
-    def toggle_mark_and_next(self):
-        self.toggle_mark()
-        self.select_next()
-
-    # ------------------------------------------------------------ #
-    # Caret position
-    # ------------------------------------------------------------ #
-
-    def set_caret(self, caret):
-        q_len = len(self.query)
-
-        self.caret = max(min(caret, q_len), 0)
-
-    def beginning_of_line(self):
-        self.set_caret(0)
-
-    def end_of_line(self):
-        self.set_caret(len(self.query))
-
-    def backward_char(self):
-        self.set_caret(self.caret - 1)
-
-    def forward_char(self):
-        self.set_caret(self.caret + 1)
-
-    # ------------------------------------------------------------ #
-    # Text
-    # ------------------------------------------------------------ #
-
-    def append_char_to_query(self, ch):
-        self.query += chr(ch).decode(self.encoding)
-        self.forward_char()
-
-    def insert_char(self, ch):
-        q = self.query
-        c = self.caret
-        self.query = q[:c] + chr(ch).decode(self.encoding) + q[c:]
-        self.set_caret(c + 1)
-
-    def insert_string(self, string):
-        caret_pos  = self.caret + len(string)
-        self.query = self.query[:self.caret] + string + self.query[self.caret:]
-        self.caret = caret_pos
-
-    def delete_backward_char(self):
-        if self.caret > 0:
-            self.backward_char()
-            self.delete_forward_char()
-
-    def delete_forward_char(self):
-        caret = self.caret
-        self.query = self.query[:caret] + self.query[caret + 1:]
-
-    def delete_end_of_line(self):
-        self.query = self.query[:self.caret]
-
-    def clear_query(self):
-        self.query = u""
-
-    # ------------------------------------------------------------ #
-    # Text > kill
-    # ------------------------------------------------------------ #
-
-    def kill_end_of_line(self):
-        self.killed = self.query[self.caret:]
-        self.query  = self.query[:self.caret]
-
-    killed = None                  # default
-    def yank(self):
-        if self.killed:
-            self.insert_string(self.killed)
