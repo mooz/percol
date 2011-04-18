@@ -37,6 +37,7 @@ from finder  import FinderMultiQueryString, FinderMultiQueryRegex
 from key     import KeyHandler
 from model   import SelectorModel
 from view    import SelectorView
+from command import SelectorCommand
 
 class TerminateLoop(Exception):
     def __init__(self, value):
@@ -67,15 +68,13 @@ class Percol(object):
 
         self.actions = actions
 
-        # create models
+        # create model
         self.model_candidate = SelectorModel(percol = self,
                                              collection = candidates, finder = finder,
                                              query = query, caret = caret, index = index)
         self.model_action = SelectorModel(percol = self,
                                           collection = [action.desc for action in actions],
                                           finder = finder)
-
-        # set current model
         self.model = self.model_candidate
 
     def __enter__(self):
@@ -88,6 +87,10 @@ class Percol(object):
 
         # create view
         self.view = SelectorView(percol = self)
+
+        # create command
+        self.command_candidate = SelectorCommand(self.model_candidate, self.view)
+        self.command_action = SelectorCommand(self.model_action, self.view)
 
         # suppress SIGINT termination
         signal.signal(signal.SIGINT, lambda signum, frame: None)
@@ -135,6 +138,16 @@ class Percol(object):
     def switch_model(self):
         self.model = self.opposite_model
 
+    @property
+    def command(self):
+        """
+        Returns corresponding model wrapper which provides advanced commands
+        """
+        if self.model is self.model_action:
+            return self.command_action
+        else:
+            return self.command_candidate
+
     # ============================================================ #
     # Main Loop
     # ============================================================ #
@@ -177,31 +190,25 @@ class Percol(object):
     # Key Handling
     # ============================================================ #
 
-    def select_next_page(self):
-        self.model.select_index(self.model.index + self.view.RESULTS_DISPLAY_MAX)
-
-    def select_previous_page(self):
-        self.model.select_index(self.model.index - self.view.RESULTS_DISPLAY_MAX)
-
     keymap = {
         "C-i"         : lambda percol: percol.switch_model(),
         # text
-        "<backspace>" : lambda percol: percol.model.delete_backward_char(),
-        "<dc>"        : lambda percol: percol.model.delete_forward_char(),
+        "<backspace>" : lambda percol: percol.command.delete_backward_char(),
+        "<dc>"        : lambda percol: percol.command.delete_forward_char(),
         # caret
-        "<left>"      : lambda percol: percol.model.backward_char(),
-        "<right>"     : lambda percol: percol.model.forward_char(),
+        "<left>"      : lambda percol: percol.command.backward_char(),
+        "<right>"     : lambda percol: percol.command.forward_char(),
         # line
-        "<down>"      : lambda percol: percol.model.select_next(),
-        "<up>"        : lambda percol: percol.model.select_previous(),
+        "<down>"      : lambda percol: percol.command.select_next(),
+        "<up>"        : lambda percol: percol.command.select_previous(),
         # page
-        "<npage>"     : lambda percol: percol.select_next_page(),
-        "<ppage>"     : lambda percol: percol.select_previous_page(),
+        "<npage>"     : lambda percol: percol.command.select_next_page(),
+        "<ppage>"     : lambda percol: percol.command.select_previous_page(),
         # top / bottom
-        "<home>"      : lambda percol: percol.model.select_top(),
-        "<end>"       : lambda percol: percol.model.select_bottom(),
+        "<home>"      : lambda percol: percol.command.select_top(),
+        "<end>"       : lambda percol: percol.command.select_bottom(),
         # mark
-        "C-SPC"       : lambda percol: percol.model.toggle_mark_and_next(),
+        "C-SPC"       : lambda percol: percol.command.toggle_mark_and_next(),
         # finish
         "RET"         : lambda percol: percol.finish(),
         "C-c"         : lambda percol: percol.cancel()

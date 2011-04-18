@@ -103,10 +103,6 @@ class SelectorModel(object):
                 debug.log("get_selected_results_with_index", e)
         return results
 
-    # ============================================================ #
-    # Commands
-    # ============================================================ #
-
     # ------------------------------------------------------------ #
     #  Selections
     # ------------------------------------------------------------ #
@@ -116,12 +112,6 @@ class SelectorModel(object):
             self.index = idx % self.results_count
         else:
             self.index = 0
-
-    def select_next(self):
-        self.select_index(self.index + 1)
-
-    def select_previous(self):
-        self.select_index(self.index - 1)
 
     def select_top(self):
         self.select_index(0)
@@ -140,33 +130,13 @@ class SelectorModel(object):
         else:
             return []
 
-    def toggle_mark(self):
-        self.marks[self.index] ^= True
-
-    def toggle_mark_and_next(self):
-        self.toggle_mark()
-        self.select_next()
-
     # ------------------------------------------------------------ #
     # Caret position
     # ------------------------------------------------------------ #
 
     def set_caret(self, caret):
         q_len = len(self.query)
-
         self.caret = max(min(caret, q_len), 0)
-
-    def beginning_of_line(self):
-        self.set_caret(0)
-
-    def end_of_line(self):
-        self.set_caret(len(self.query))
-
-    def backward_char(self):
-        self.set_caret(self.caret - 1)
-
-    def forward_char(self):
-        self.set_caret(self.caret + 1)
 
     # ------------------------------------------------------------ #
     # Text
@@ -186,32 +156,3 @@ class SelectorModel(object):
         caret_pos  = self.caret + len(string)
         self.query = self.query[:self.caret] + string + self.query[self.caret:]
         self.caret = caret_pos
-
-    def delete_backward_char(self):
-        if self.caret > 0:
-            self.backward_char()
-            self.delete_forward_char()
-
-    def delete_forward_char(self):
-        caret = self.caret
-        self.query = self.query[:caret] + self.query[caret + 1:]
-
-    def delete_end_of_line(self):
-        self.query = self.query[:self.caret]
-
-    def clear_query(self):
-        self.query = u""
-
-    # ------------------------------------------------------------ #
-    # Text > kill
-    # ------------------------------------------------------------ #
-
-    def kill_end_of_line(self):
-        self.killed = self.query[self.caret:]
-        self.query  = self.query[:self.caret]
-
-    killed = None                  # default
-    def yank(self):
-        if self.killed:
-            self.insert_string(self.killed)
-
