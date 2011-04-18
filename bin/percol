@@ -82,10 +82,11 @@ if __name__ == "__main__":
     setup_options(parser)
     options, args = parser.parse_args()
 
-    def exit_program(msg=None):
+    def exit_program(msg = None, show_help = True):
         if not msg is None:
             print("\n" + msg + "\n")
-        parser.print_help()
+        if show_help:
+            parser.print_help()
         exit(1)
 
     # get ttyname
@@ -99,10 +100,30 @@ Maybe all descriptors are redirecred.""")
 
     with open(ttyname, "r+w") as tty_f:
         if not tty_f.isatty():
-            exit_program("Error: {0} is not a tty file".format(ttyname))
+            exit_program("Error: {0} is not a tty file".format(ttyname), show_help = False)
+
+        filename = args[0] if len(args) > 0 else None
+
+        if filename is None and sys.stdin.isatty():
+            tty_f.write("""Warning: You are running percol in an interactive input mode.
+Typical usage of percol are listed below.
+
+1). Giving a filename,
+
+ $ percol /var/log/syslog
+
+2). or specifying a redirection.
+
+ $ ps aux | percol
+
+You can exit percol by pressing Ctrl+c key.
+""")
 
         # read input
-        candidates = read_input(args[0] if len(args) > 0 else None, encoding)
+        try:
+            candidates = read_input(filename, encoding)
+        except KeyboardInterrupt:
+            exit_program("Canceled", show_help = False)
 
         # setup actions
         import percol.actions as actions
