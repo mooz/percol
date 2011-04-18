@@ -10,6 +10,16 @@ percol adds flavor of interactive selection to the traditional pipe concept on U
 
 ## Example
 
+### Basic (and crappy) examples
+
+Specifying a filename.
+
+    $ percol /var/log/syslog
+
+Specifying a redirecition.
+
+    $ ps aux | percol
+
 ### zsh history search
 
 In your `.zshrc`, put the lines below.
