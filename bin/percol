@@ -59,6 +59,24 @@ def setup_options(parser):
     parser.add_option("--initial-index", dest = "index",
                       help = "position of the initial index of the selection (numeric, \"first\" or \"last\")")
 
+def set_proper_locale(options):
+    locale.setlocale(locale.LC_ALL, '')
+    encoding = locale.getpreferredencoding()
+    if options.encoding:
+        encoding = options.encoding
+    return encoding
+
+def read_input(filename, encoding):
+    if filename:
+        with open(filename, "r") as f:
+            content = f.read()
+    else:
+        content = sys.stdin.read()
+    candidates = unicode(content, encoding, "replace").split("\n")
+    if len(candidates) > 0 and candidates[-1] == "":
+        candidates.pop(-1)
+    return candidates
+
 if __name__ == "__main__":
     parser = OptionParser(usage = "Usage: %prog [options] [FILE]")
     setup_options(parser)
@@ -73,30 +91,21 @@ if __name__ == "__main__":
     # get ttyname
     ttyname = options.tty or tty.get_ttyname()
     if not ttyname:
-        exit_program("""Error: No tty name is given and failed to guess (maybe stderr is redirecred)""")
+        exit_program("""Error: No tty name is given and failed to guess it from descriptors.
+Maybe all descriptors are redirecred.""")
 
     # decide which encoding to use
-    locale.setlocale(locale.LC_ALL, '')
-    encoding = locale.getpreferredencoding()
-    if options.encoding:
-        encoding = options.encoding
+    encoding = set_proper_locale(options)
 
     with open(ttyname, "r+w") as tty_f:
         if not tty_f.isatty():
             exit_program("Error: {0} is not a tty file".format(ttyname))
 
         # read input
-        filename = args[0] if len(args) > 0 else None
-        if filename:
-            with open(filename, "r") as f:
-                content = f.read()
-        else:
-            content = sys.stdin.read()
-        candidates = unicode(content, encoding, 'replace').split("\n")
+        candidates = read_input(args[0] if len(args) > 0 else None, encoding)
 
         # setup actions
         import percol.actions as actions
-
         acts = (actions.output_to_stdout, actions.output_to_stdout_double)
 
         with Percol(descriptors = tty.reconnect_descriptors(tty_f),
