@@ -218,30 +218,31 @@ class Percol(object):
     # default
     last_key = None
     def handle_key(self, ch):
-        self.last_key = None
-
         if ch == curses.KEY_RESIZE:
-            self.handle_resize()
-            key = "<RESIZE>"
-            # XXX: trash -1 (it seems that resize key sends -1)
-            self.keyhandler.get_key_for(self.screen.getch())
+            self.last_key = self.handle_resize(ch)
         elif ch != -1 and self.keyhandler.is_utf8_multibyte_key(ch):
-            ukey = self.keyhandler.get_utf8_key_for(ch)
-            key  = ukey.encode(self.encoding)
-            self.model.insert_string(ukey)
+            self.last_key = self.handle_utf8(ch)
         else:
-            k = self.keyhandler.get_key_for(ch)
+            self.last_key = self.handle_normal_key(ch)
 
-            if self.keymap.has_key(k):
-                self.keymap[k](self)
-            elif self.keyhandler.is_displayable_key(ch):
-                self.model.insert_char(ch)
-            key = k
-
-        self.last_key = key
-
-    def handle_resize(self):
+    def handle_resize(self, ch):
         self.display.update_screen_size()
+        # XXX: trash -1 (it seems that resize key sends -1)
+        self.keyhandler.get_key_for(self.screen.getch())
+        return key.SPECIAL_KEYS[ch]
+
+    def handle_utf8(self, ch):
+        ukey = self.keyhandler.get_utf8_key_for(ch)
+        self.model.insert_string(ukey)
+        return ukey.encode(self.encoding)
+
+    def handle_normal_key(self, ch):
+        k = self.keyhandler.get_key_for(ch)
+        if self.keymap.has_key(k):
+            self.keymap[k](self)
+        elif self.keyhandler.is_displayable_key(ch):
+            self.model.insert_char(ch)
+        return k
 
     # ------------------------------------------------------------ #
     # Finish / Cancel
