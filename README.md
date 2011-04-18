@@ -35,7 +35,7 @@ Then, you can display and search your zsh histories incrementally by pressing `C
 
 Configuration file for percol should be placed under `${HOME}/.percol.d/` and named `rc.py`.
 
-Here is the example `~/.percol.d/rc.py`. 
+Here is an example `~/.percol.d/rc.py`. 
 
     # X / _ / X
     percol.view.PROMPT  = ur"<bold><yellow>X / _ / X</yellow></bold> %q"
