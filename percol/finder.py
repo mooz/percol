@@ -179,9 +179,11 @@ class FinderPath(Finder):
         try:
             if path[-1] != "/":
                 path = os.path.dirname(path)
+                if path != "/":
+                    path = path + "/"
             files = os.listdir(path)
         except Exception as e:
             files = []
         query_base = os.path.basename(query)
-        return [file for file in files
+        return [path + file for file in files
                 if query_base in os.path.basename(file)]
