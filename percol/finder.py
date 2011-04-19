@@ -26,6 +26,18 @@ from abc import ABCMeta, abstractmethod
 class Finder(object):
     __metaclass__ = ABCMeta
 
+    def __init__(self, *args, **keys):
+        pass
+
+    @abstractmethod
+    def get_results(self, query):
+        pass
+
+# ============================================================ #
+# Finder > Static
+# ============================================================ #
+
+class FinderStatic(Finder):
     def __init__(self):
         self.results_cache = {}
 
@@ -62,9 +74,9 @@ class Finder(object):
 # Finder > multiquery
 # ============================================================ #
 
-class FinderMultiQuery(Finder):
+class FinderMultiQuery(FinderStatic):
     def __init__(self, collection, split_str = " ", split_re = None):
-        Finder.__init__(self)
+        FinderStatic.__init__(self)
 
         self.collection = collection
         self.split_str  = split_str
@@ -150,3 +162,26 @@ class FinderMultiQueryRegex(FinderMultiQuery):
                     for m in re.finditer(needle, haystack)]
         except:
             return None
+
+# ============================================================ #
+# Finder > Path
+# ============================================================ #
+
+import os
+
+class FinderPath(Finder):
+    def get_results(self, query):
+        dummy_res = [["", [(0, 0)]]]
+        return [(file, dummy_res, i) for (i, file) in enumerate(self.get_files(query))]
+
+    def get_files(self, query):
+        path = os.path.expanduser(query)
+        try:
+            if path[-1] != "/":
+                path = os.path.dirname(path)
+            files = os.listdir(path)
+        except Exception as e:
+            files = []
+        query_base = os.path.basename(query)
+        return [file for file in files
+                if query_base in os.path.basename(file)]
