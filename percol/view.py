@@ -28,9 +28,9 @@ import display, theme
 
 class SelectorView(object):
     def __init__(self, percol = None):
-        self.percol      = percol
-        self.screen      = percol.screen
-        self.display     = percol.display
+        self.percol  = percol
+        self.screen  = percol.screen
+        self.display = percol.display
 
     @property
     def RESULTS_DISPLAY_MAX(self):
