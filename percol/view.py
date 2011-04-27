@@ -112,13 +112,21 @@ class SelectorView(object):
     # Prompt
     # ============================================================ #
 
+    prompt_on_top = True
+
     @property
     def RESULT_OFFSET_V(self):
-        return self.PROMPT_OFFSET_V + 1
+        if self.prompt_on_top:
+            return self.PROMPT_OFFSET_V + 1
+        else:
+            return 0
 
     @property
     def PROMPT_OFFSET_V(self):
-        return 0
+        if self.prompt_on_top:
+            return 0
+        else:
+            return self.display.HEIGHT - 1
 
     PROMPT  = u"QUERY> %q"
     RPROMPT = u"(%i/%I) [%n/%N]"
