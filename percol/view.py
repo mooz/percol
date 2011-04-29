@@ -190,7 +190,7 @@ class SelectorView(object):
         "i" : lambda self, **args: self.model.index + (1 if self.model.results_count > 0 else 0),
         "I" : lambda self, **args: self.model.results_count,
         "c" : lambda self, **args: self.model.caret,
-        "k" : lambda self, **args: self.last_key
+        "k" : lambda self, **args: self.percol.last_key
     }
 
     format_pattern = re.compile(ur'%([a-zA-Z%])')
