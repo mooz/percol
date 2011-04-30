@@ -92,6 +92,7 @@ class SelectorCommand(object):
 
     def clear_query(self):
         self.model.query = u""
+        self.model.set_caret(0)
 
     # ------------------------------------------------------------ #
     # Text > kill
