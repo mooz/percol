@@ -193,7 +193,9 @@ class Percol(object):
     keymap = {
         "C-i"         : lambda percol: percol.switch_model(),
         # text
+        "C-h"         : lambda percol: percol.command.delete_backward_char(),
         "<backspace>" : lambda percol: percol.command.delete_backward_char(),
+        "C-u"         : lambda percol: percol.command.clear_query(),
         "<dc>"        : lambda percol: percol.command.delete_forward_char(),
         # caret
         "<left>"      : lambda percol: percol.command.backward_char(),
@@ -210,7 +212,8 @@ class Percol(object):
         # mark
         "C-SPC"       : lambda percol: percol.command.toggle_mark_and_next(),
         # finish
-        "RET"         : lambda percol: percol.finish(),
+        "RET"         : lambda percol: percol.finish(), # Is RET never sent?
+        "C-j"         : lambda percol: percol.finish(),
         "C-c"         : lambda percol: percol.cancel()
     }
 
