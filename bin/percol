@@ -58,6 +58,8 @@ def setup_options(parser):
                       help = "position of the caret (default length of the `query`)")
     parser.add_option("--initial-index", dest = "index",
                       help = "position of the initial index of the selection (numeric, \"first\" or \"last\")")
+    parser.add_option("--peep", action = "store_true", dest = "peep", default = False,
+                      help = "exit immediately with doing nothing to cache module files and speed up start-up time")
 
 def set_proper_locale(options):
     locale.setlocale(locale.LC_ALL, '')
@@ -81,6 +83,9 @@ if __name__ == "__main__":
     parser = OptionParser(usage = "Usage: %prog [options] [FILE]")
     setup_options(parser)
     options, args = parser.parse_args()
+
+    if options.peep:
+        exit(1)
 
     def exit_program(msg = None, show_help = True):
         if not msg is None:
