@@ -184,7 +184,7 @@ class Percol(object):
 
                 self.view.refresh_display()
             except TerminateLoop as e:
-                break
+                return e.value
 
     # ============================================================ #
     # Key Handling
@@ -261,7 +261,7 @@ class Percol(object):
     def finish(self):
         # save selected candidates and use them later (in execute_action)
         self.args_for_action = self.model_candidate.get_selected_results_with_index()
-        raise TerminateLoop("Finished")
+        raise TerminateLoop(0)          # success
 
     def cancel(self):
-        raise TerminateLoop("Canceled")
+        raise TerminateLoop(1)          # failure

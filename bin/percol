@@ -142,4 +142,6 @@ You can exit percol by pressing Ctrl+c key.
                     index = options.index,
                     encoding = encoding) as percol:
             load_rc(percol, options.rcfile, encoding)
-            percol.loop()
+            exit_code = percol.loop()
+
+        exit(exit_code)
