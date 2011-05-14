@@ -181,7 +181,7 @@ SPECIAL_KEYS = {
 # Other
 KEY_ESCAPE = 27
 
-class KeyHandler:
+class KeyHandler(object):
     def __init__(self, screen):
         self.screen = screen
 

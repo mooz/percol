@@ -21,7 +21,7 @@
 # Action
 # ============================================================ #
 
-class Action():
+class Action(object):
     def __init__(self, desc, act, args):
         self.act  = act
         self.desc = desc
