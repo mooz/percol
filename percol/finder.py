@@ -70,6 +70,8 @@ class FinderMultiQuery(Finder):
         self.split_str  = split_str
         self.split_re   = split_re
 
+    case_insensitive = True
+
     dummy_res = [["", [(0, 0)]]]
 
     def find(self, query, collection = None):
@@ -83,11 +85,15 @@ class FinderMultiQuery(Finder):
             if query_is_empty:
                 res = self.dummy_res
             else:
+                if self.case_insensitive:
+                    line_to_match = line.lower()
+                else:
+                    line_to_match = line
                 if use_re:
-                    queries = re.split(self.split_re, line)
+                    queries = re.split(self.split_re, line_to_match)
                 else:
                     queries = query.split(self.split_str)
-                res = self.find_queries(queries, line)
+                res = self.find_queries(queries, line_to_match)
 
             if res:
                 yield line, res, idx
