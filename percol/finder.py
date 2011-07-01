@@ -78,6 +78,9 @@ class FinderMultiQuery(Finder):
         query_is_empty = query == ""
         use_re = not self.split_re is None
 
+        if self.case_insensitive:
+            query = query.lower()
+
         if collection is None:
             collection = self.collection
 
