@@ -4,9 +4,19 @@ percol adds flavor of interactive selection to the traditional pipe concept on U
 
 ## Installation
 
+First, clone percol repository and go into the directory.
+
     $ git clone git://github.com/mooz/percol.git
     $ cd percol
+
+Then, run a command below.
+
     $ sudo python setup.py install
+
+If you don't have a root permission (or don't wanna install percol with sudo), try next one.
+
+    $ python setup.py install --prefix=~/.local
+    $ export PATH=~/.local/bin:$PATH
 
 ## Example
 
