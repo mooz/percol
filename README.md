@@ -4,9 +4,19 @@ percol adds flavor of interactive selection to the traditional pipe concept on U
 
 ## Installation
 
+First, clone percol repository and go into the directory.
+
     $ git clone git://github.com/mooz/percol.git
     $ cd percol
+
+Then, run a command below.
+
     $ sudo python setup.py install
+
+If you don't have a root permission (or don't wanna install percol with sudo), try next one.
+
+    $ python setup.py install --prefix=~/.local
+    $ export PATH=~/.local/bin:$PATH
 
 ## Example
 
@@ -40,6 +50,15 @@ In your `.zshrc`, put the lines below.
     fi
 
 Then, you can display and search your zsh histories incrementally by pressing `Ctrl + r` key.
+
+### tmux
+
+Here are some examples of tmux and percol integration.
+
+    bind b split-window "tmux lsw | percol --initial-index $(tmux lsw | awk '/active.$/ {print NR-1}') | cut -d':' -f 1 | xargs tmux select-window -t"
+    bind B split-window "tmux ls | percol --initial-index $(tmux ls | awk '/attached.$/ {print NR-1}') | cut -d':' -f 1 | xargs tmux switch-client -t"
+
+By putting above 2 settings into `tmux.conf`, you can select a tmux window with `${TMUX_PREFIX} b` keys and session with `${TMUX_PREFIX} B` keys.
 
 ## Configuration
 
