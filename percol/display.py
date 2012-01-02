@@ -24,7 +24,6 @@ import curses
 import markup, debug
 
 FG_COLORS = {
-    "default" : -1,
     "black"   : curses.COLOR_BLACK,
     "blue"    : curses.COLOR_BLUE,
     "cyan"    : curses.COLOR_CYAN,
@@ -47,7 +46,7 @@ ATTRS = {
     "underline"  : curses.A_UNDERLINE,
 }
 
-COLORS = len(FG_COLORS)
+COLOR_COUNT = len(FG_COLORS)
 
 # ============================================================ #
 # Markup
@@ -103,7 +102,15 @@ class Display(object):
         curses.start_color()
         curses.use_default_colors()
 
-        self.init_color_pairs()
+        if curses.COLORS > COLOR_COUNT:
+            FG_COLORS["default"]    = -1
+            BG_COLORS["on_default"] = -1
+            self.init_color_pairs()
+        else:
+            self.init_color_pairs()
+            FG_COLORS["default"]    = curses.COLOR_WHITE
+            BG_COLORS["on_default"] = curses.COLOR_BLACK
+
         self.update_screen_size()
 
     def update_screen_size(self):
@@ -128,10 +135,10 @@ class Display(object):
                     curses.init_pair(self.get_pair_number(fg, bg), fg, bg)
 
     def get_normalized_number(self, number):
-        return COLORS if number < 0 else number
+        return COLOR_COUNT if number < 0 else number
 
     def get_pair_number(self, fg, bg):
-        return self.get_normalized_number(fg) + self.get_normalized_number(bg) * COLORS
+        return self.get_normalized_number(fg) + self.get_normalized_number(bg) * COLOR_COUNT
 
     def get_color_pair(self, fg, bg):
         return curses.color_pair(self.get_pair_number(fg, bg))
