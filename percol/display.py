@@ -24,6 +24,7 @@ import curses
 import markup, debug
 
 FG_COLORS = {
+    "default" : -1,
     "black"   : curses.COLOR_BLACK,
     "blue"    : curses.COLOR_BLUE,
     "cyan"    : curses.COLOR_CYAN,
@@ -56,13 +57,13 @@ def get_fg_color(attrs):
     for attr in attrs:
         if attr in FG_COLORS:
             return FG_COLORS[attr]
-    return FG_COLORS["white"]
+    return FG_COLORS["default"]
 
 def get_bg_color(attrs):
     for attr in attrs:
         if attr in BG_COLORS:
             return BG_COLORS[attr]
-    return BG_COLORS["on_black"]
+    return BG_COLORS["on_default"]
 
 def get_attributes(attrs):
     for attr in attrs:
@@ -100,6 +101,7 @@ class Display(object):
         self.parser   = markup.MarkupParser()
 
         curses.start_color()
+        curses.use_default_colors()
 
         self.init_color_pairs()
         self.update_screen_size()
@@ -125,8 +127,11 @@ class Display(object):
                 if not (fg == bg == 0):
                     curses.init_pair(self.get_pair_number(fg, bg), fg, bg)
 
+    def get_normalized_number(self, number):
+        return COLORS if number < 0 else number
+
     def get_pair_number(self, fg, bg):
-        return fg + bg * COLORS
+        return self.get_normalized_number(fg) + self.get_normalized_number(bg) * COLORS
 
     def get_color_pair(self, fg, bg):
         return curses.color_pair(self.get_pair_number(fg, bg))
@@ -284,7 +289,7 @@ if __name__ == "__main__":
 
     display.add_aligned_string(u" foo bar baz qux ",
                                x_align = "center", y_align = "center",
-                               style = display.attrs_to_style(("bold", "white", "on_magenta")),
+                               style = display.attrs_to_style(("bold", "white", "on_default")),
                                fill = True, fill_char = '-')
 
     screen.getch()

@@ -19,7 +19,7 @@
 
 # see display.py to see available colors and attributes
 
-CANDIDATES_LINE_BASIC    = ("on_black", "white")
+CANDIDATES_LINE_BASIC    = ("on_default", "default")
 CANDIDATES_LINE_SELECTED = ("on_magenta", "white")
 CANDIDATES_LINE_MARKED   = ("on_cyan", "black")
 CANDIDATES_LINE_QUERY    = ("yellow", "bold")
