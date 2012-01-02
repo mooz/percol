@@ -51,6 +51,15 @@ In your `.zshrc`, put the lines below.
 
 Then, you can display and search your zsh histories incrementally by pressing `Ctrl + r` key.
 
+### tmux
+
+Here are some examples of tmux and percol integration.
+
+    bind b split-window "tmux lsw | percol --initial-index $(tmux lsw | awk '/active.$/ {print NR-1}') | cut -d':' -f 1 | xargs tmux select-window -t"
+    bind B split-window "tmux ls | percol --initial-index $(tmux ls | awk '/attached.$/ {print NR-1}') | cut -d':' -f 1 | xargs tmux switch-client -t"
+
+By putting above 2 settings into `tmux.conf`, you can select a tmux window with `${TMUX_PREFIX} b` keys and session with `${TMUX_PREFIX} B` keys.
+
 ## Configuration
 
 Configuration file for percol should be placed under `${HOME}/.percol.d/` and named `rc.py`.
