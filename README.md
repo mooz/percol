@@ -18,6 +18,18 @@ If you don't have a root permission (or don't wanna install percol with sudo), t
     $ python setup.py install --prefix=~/.local
     $ export PATH=~/.local/bin:$PATH
 
+## Tips
+
+### Matching Method
+
+By default, percol interprets input queries by users as *string*. If you prefer *regular expression*, try `--match-method` command line option.
+
+    $ percol --match-method regex
+
+### Selecting multiple candidates
+
+You can select and let percol to output multiple candidates by `percol.toggle_mark_and_next` (which is bound to `C-SPC` by default).
+
 ## Example
 
 ### Basic (and crappy) examples
@@ -30,11 +42,36 @@ Specifying a redirecition.
 
     $ ps aux | percol
 
-### Matching Method
+### Interactive pgrep / pkill
 
-By default, percol interprets input queries by users as *string*. If you prefer *regular expression*, try `--match-method` command line option.
+Here is an interactive version of pgrep,
 
-    $ percol --match-method regex
+    $ ps aux | percol | awk '{ print $2 }'
+
+and here is an interactive version of pkill.
+
+    $ ps aux | percol | awk '{ print $2 }' | xargs kill
+
+For zsh users, command exutable versions are here (`ppkill` accepts options like `-9`).
+
+    function ppgrep() {
+        if [[ $1 == "" ]]; then
+            PERCOL=percol
+        else
+            PERCOL=percol --query $1
+        fi
+        ps aux | eval $PERCOL | awk '{ print $2 }'
+    }
+    
+    function ppkill() {
+        if [[ $1 =~ "^-" ]]; then
+            QUERY=""            # options only
+        else
+            QUERY=$1            # with a query
+            shift
+        fi
+        ppgrep $QUERY | xargs kill $*
+    }
 
 ### zsh history search
 
