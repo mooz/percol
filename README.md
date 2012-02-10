@@ -30,6 +30,12 @@ Specifying a redirecition.
 
     $ ps aux | percol
 
+### Matching Method
+
+By default, percol interprets input queries by users as *string*. If you prefer *regular expression*, try `--match-method` command line option.
+
+    $ percol --match-method regex
+
 ### zsh history search
 
 In your `.zshrc`, put the lines below.
