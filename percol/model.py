@@ -130,6 +130,16 @@ class SelectorModel(object):
         else:
             return []
 
+    def set_mark(self, marked, index = None):
+        if index is None:
+            index = self.index
+        self.marks[index] = marked
+
+    def get_mark(self, index = None):
+        if index is None:
+            index = self.index
+        return self.marks[index]
+
     # ------------------------------------------------------------ #
     # Caret position
     # ------------------------------------------------------------ #
