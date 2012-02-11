@@ -18,21 +18,7 @@ If you don't have a root permission (or don't wanna install percol with sudo), t
     $ python setup.py install --prefix=~/.local
     $ export PATH=~/.local/bin:$PATH
 
-## Tips
-
-### Matching Method
-
-By default, percol interprets input queries by users as *string*. If you prefer *regular expression*, try `--match-method` command line option.
-
-    $ percol --match-method regex
-
-### Selecting multiple candidates
-
-You can select and let percol to output multiple candidates by `percol.toggle_mark_and_next` (which is bound to `C-SPC` by default).
-
-## Example
-
-### Basic (and crappy) examples
+## Usage
 
 Specifying a filename.
 
@@ -41,6 +27,22 @@ Specifying a filename.
 Specifying a redirecition.
 
     $ ps aux | percol
+
+## Tips
+
+### Matching Method
+
+By default, percol interprets input queries by users as **string**. If you prefer **regular expression**, try `--match-method` command line option.
+
+    $ percol --match-method regex
+
+### Selecting multiple candidates
+
+You can select and let percol to output multiple candidates by `percol.command.toggle_mark_and_next()` (which is bound to `C-SPC` by default).
+
+`percol.command.mark_all()`, `percol.command.unmark_all()` and `percol.command.toggle_mark_all()` are useful to mark / unmark all candidates at once.
+
+## Example
 
 ### Interactive pgrep / pkill
 
@@ -52,13 +54,13 @@ and here is an interactive version of pkill.
 
     $ ps aux | percol | awk '{ print $2 }' | xargs kill
 
-For zsh users, command exutable versions are here (`ppkill` accepts options like `-9`).
+For zsh users, command versions are here (`ppkill` accepts options like `-9`).
 
     function ppgrep() {
         if [[ $1 == "" ]]; then
             PERCOL=percol
         else
-            PERCOL=percol --query $1
+            PERCOL="percol --query $1"
         fi
         ps aux | eval $PERCOL | awk '{ print $2 }'
     }
