@@ -25,13 +25,13 @@ import markup, debug
 
 FG_COLORS = {
     "black"   : curses.COLOR_BLACK,
-    "blue"    : curses.COLOR_BLUE,
-    "cyan"    : curses.COLOR_CYAN,
-    "green"   : curses.COLOR_GREEN,
-    "magenta" : curses.COLOR_MAGENTA,
     "red"     : curses.COLOR_RED,
-    "white"   : curses.COLOR_WHITE,
+    "green"   : curses.COLOR_GREEN,
     "yellow"  : curses.COLOR_YELLOW,
+    "blue"    : curses.COLOR_BLUE,
+    "magenta" : curses.COLOR_MAGENTA,
+    "cyan"    : curses.COLOR_CYAN,
+    "white"   : curses.COLOR_WHITE,
 }
 
 BG_COLORS = dict(("on_" + name, value) for name, value in FG_COLORS.iteritems())
