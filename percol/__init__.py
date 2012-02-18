@@ -25,6 +25,13 @@ Interface of percol is highly inspired by anything.el for Emacs."""
 
 __version__ = "0.0.1"
 
+__logo__ = """                                    __
+        ____  ___  ______________  / /
+       / __ \/ _ \/ ___/ ___/ __ \/ /
+      / /_/ /  __/ /  / /__/ /_/ / /
+     / .___/\___/_/   \___/\____/_/
+    /_/"""
+
 import sys
 import signal
 import curses

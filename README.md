@@ -1,5 +1,12 @@
 # percol
 
+                                    __
+        ____  ___  ______________  / /
+       / __ \/ _ \/ ___/ ___/ __ \/ /
+      / /_/ /  __/ /  / /__/ /_/ / /
+     / .___/\___/_/   \___/\____/_/
+    /_/
+
 percol adds flavor of interactive selection to the traditional pipe concept on UNIX
 
 ## Installation
@@ -109,7 +116,7 @@ By putting above 2 settings into `tmux.conf`, you can select a tmux window with 
 
 Configuration file for percol should be placed under `${HOME}/.percol.d/` and named `rc.py`.
 
-Here is an example `~/.percol.d/rc.py`. 
+Here is an example `~/.percol.d/rc.py`.
 
     # X / _ / X
     percol.view.PROMPT  = ur"<bold><yellow>X / _ / X</yellow></bold> %q"
