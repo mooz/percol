@@ -54,15 +54,15 @@ DISPLAY_ATTRIBUTES = {
 markup_parser = MarkupParser()
 
 def markup(string):
-    return decolate_parse_result(markup_parser.parse(string))
+    return decorate_parse_result(markup_parser.parse(string))
 
-def decolate_parse_result(parse_result):
-    decolated_string = ""
+def decorate_parse_result(parse_result):
+    decorated_string = ""
     for (fragment_string, attributes) in parse_result:
-        decolated_string += decolate_string_with_attributes(fragment_string, attributes)
-    return decolated_string
+        decorated_string += decorate_string_with_attributes(fragment_string, attributes)
+    return decorated_string
 
-def decolate_string_with_attributes(string, attributes):
+def decorate_string_with_attributes(string, attributes):
     attribute_numbers = attribute_names_to_numbers(attributes)
     attribute_format = ";".join(attribute_numbers)
     return "\033[{0}m{1}\033[0m".format(attribute_format, string)
