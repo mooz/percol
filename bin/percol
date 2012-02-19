@@ -45,11 +45,11 @@ Typical usage of percol are listed below.
 
 <underline>(1) Giving a filename,</underline>
 
- $ percol /var/log/syslog
+ $ <underline>percol</underline> /var/log/syslog
 
 <underline>(2) or specifying a redirection.</underline>
 
- $ ps aux | percol
+ $ ps aux | <underline>percol</underline>
 
 You can exit percol by pressing <on_blue> CTRL+C </on_blue> key.
 """).format(logo = percol.__logo__,
