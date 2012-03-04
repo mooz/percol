@@ -262,6 +262,9 @@ class Display(object):
         if style.__class__ != types.IntType:
             style = self.attrs_to_style(style)
 
+        if x + n > self.WIDTH:
+            n = max(self.WIDTH - x, 0)
+
         try:
             self.screen.addnstr(y, x, self.get_raw_string(s), n, style)
             return True
