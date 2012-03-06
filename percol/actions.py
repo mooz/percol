@@ -22,13 +22,13 @@ import sys
 from action import action
 
 @action()
-def output_to_stdout(lines):
+def output_to_stdout(lines, percol):
     "output marked (selected) items to stdout"
     for line in lines:
-        sys.stdout.write(line + "\n")
+        sys.stdout.write(percol.display.get_raw_string(line + "\n"))
 
 @action()
-def output_to_stdout_double(lines):
+def output_to_stdout_double(lines, percol):
     "output marked (selected) items to stdout by double"
     for line in lines:
-        sys.stdout.write(line * 2 + "\n")
+        sys.stdout.write(percol.display.get_raw_string(line * 2 + "\n"))

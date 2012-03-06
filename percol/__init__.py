@@ -124,7 +124,7 @@ class Percol(object):
                 try:
                     action = self.actions[act_idx]
                     if action:
-                        action.act([arg for arg, _, _ in self.args_for_action])
+                        action.act([arg for arg, _, _ in self.args_for_action], self)
                 except Exception as e:
                     debug.log("execute_action", e)
 
