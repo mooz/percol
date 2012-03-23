@@ -79,6 +79,12 @@ def display_len(s, beg = None, end = None):
     if end is None:
         end = len(s)
 
+    if "\t" in s:
+        # consider tabstop (very naive approach)
+        beg = len(s[0:beg].expandtabs())
+        end = len(s[beg:end].expandtabs())
+        s = s.expandtabs()
+
     if s.__class__ != types.UnicodeType:
         return end - beg
 
