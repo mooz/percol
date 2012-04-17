@@ -106,14 +106,13 @@ class Display(object):
         self.parser   = markup.MarkupParser()
 
         curses.start_color()
-        curses.use_default_colors()
 
         if curses.COLORS > COLOR_COUNT:
+            curses.use_default_colors()
             FG_COLORS["default"]    = -1
             BG_COLORS["on_default"] = -1
             self.init_color_pairs()
         else:
-            self.init_color_pairs()
             FG_COLORS["default"]    = curses.COLOR_WHITE
             BG_COLORS["on_default"] = curses.COLOR_BLACK
 
