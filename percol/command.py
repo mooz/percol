@@ -98,6 +98,16 @@ class SelectorCommand(object):
             self.backward_char()
             self.delete_forward_char()
 
+    def delete_backward_word(self):
+        from re import search
+        caret = self.model.caret
+        if caret > 0:
+            q = self.model.query
+            qc = q[:caret]
+            m = search(r'\S+', qc[::-1])
+            self.model.query = qc[:-m.end()] + q[caret:]
+            self.model.set_caret(caret - m.end())
+
     def delete_forward_char(self):
         caret = self.model.caret
         self.model.query = self.model.query[:caret] + self.model.query[caret + 1:]

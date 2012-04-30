@@ -202,6 +202,7 @@ class Percol(object):
         # text
         "C-h"         : lambda percol: percol.command.delete_backward_char(),
         "<backspace>" : lambda percol: percol.command.delete_backward_char(),
+        "C-w"         : lambda percol: percol.command.delete_backward_word(),
         "C-u"         : lambda percol: percol.command.clear_query(),
         "<dc>"        : lambda percol: percol.command.delete_forward_char(),
         # caret
