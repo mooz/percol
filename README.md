@@ -35,13 +35,43 @@ Specifying a redirecition.
 
     $ ps aux | percol
 
-## Tips
 
-### Matching Method
+## Matching Method
 
 By default, percol interprets input queries by users as **string**. If you prefer **regular expression**, try `--match-method` command line option.
 
     $ percol --match-method regex
+
+### Migemo support
+
+From version 0.0.2, percol supports **migemo** (http://0xcc.net/migemo/) for `--match-method` experimentally.
+
+    $ percol --match-method migemo
+
+This feature requires following external modules for now.
+
+- C/Migemo (http://code.google.com/p/cmigemo/)
+- PyMigemo (http://www.atzm.org/etc/pymigemo.html)
+
+#### Dictionary settings
+
+By default, percol assumes the path of a dictionary for migemo is `/usr/local/share/migemo/utf-8/migemo-dict`. If the dictionary is located in a different place, you should tell the location via `rc.py`.
+
+For example, if the path of the dictionary is `/path/to/a/migemo-dict`, put lines below into your `rc.py`.
+
+    from percol.finder import FinderMultiQueryMigemo
+    FinderMultiQueryMigemo.dictionary_path = "/path/to/a/migemo-dict"
+
+#### Minimum query length
+
+If the query length is **too short**, migemo generates **very long** regular expression. To deal with this problem, percol does not pass a query if the length of the query is shorter than **2** and treat the query as raw regular expression.
+
+To change this behavior, change the value of `FinderMultiQueryMigemo.minimum_query_length` like following settings.
+
+    from percol.finder import FinderMultiQueryMigemo
+    FinderMultiQueryMigemo.minimum_query_length = 1
+
+## Tips
 
 ### Selecting multiple candidates
 

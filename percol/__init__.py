@@ -23,7 +23,7 @@ Try
 and you can display the output of command A and filter it intaractively then pass them to command B.
 Interface of percol is highly inspired by anything.el for Emacs."""
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 
 __logo__ = """                                    __
         ____  ___  ______________  / /
