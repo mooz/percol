@@ -166,3 +166,38 @@ class FinderMultiQueryRegex(FinderMultiQuery):
             return [(matched.start(), matched.end() - matched.start())]
         except:
             return None
+
+# ============================================================ #
+# Finder > AND search > Migemo
+# ============================================================ #
+
+class FinderMultiQueryMigemo(FinderMultiQuery):
+    import re
+
+    dictionary_path = "/usr/local/share/migemo/utf-8/migemo-dict"
+    minimum_query_length = 2
+
+    migemo_instance = None
+    @property
+    def migemo(self):
+        import migemo
+        if self.migemo_instance is None:
+            self.migemo_instance = migemo.Migemo(self.dictionary_path)
+        return self.migemo_instance
+
+    def transform_query(self, needle):
+        try:
+            if len(needle) >= self.minimum_query_length:
+                regexp_string = self.migemo.query(needle)
+            else:
+                regexp_string = needle
+            return re.compile(regexp_string)
+        except:
+            return None
+
+    def find_query(self, needle, haystack):
+        try:
+            matched = needle.search(haystack)
+            return [(matched.start(), matched.end() - matched.start())]
+        except:
+            return None

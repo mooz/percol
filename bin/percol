@@ -106,6 +106,9 @@ def decide_match_method(options):
     if options.match_method == "regex":
         from percol.finder import FinderMultiQueryRegex
         return FinderMultiQueryRegex
+    if options.match_method == "migemo":
+        from percol.finder import FinderMultiQueryMigemo
+        return FinderMultiQueryMigemo
     else:
         from percol.finder import FinderMultiQueryString
         return FinderMultiQueryString
