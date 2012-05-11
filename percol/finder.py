@@ -152,10 +152,9 @@ class FinderMultiQueryString(FinderMultiQuery):
 # ============================================================ #
 
 class FinderMultiQueryRegex(FinderMultiQuery):
-    import re
-
     def transform_query(self, needle):
         try:
+            import re
             return re.compile(needle)
         except:
             return None
@@ -172,8 +171,6 @@ class FinderMultiQueryRegex(FinderMultiQuery):
 # ============================================================ #
 
 class FinderMultiQueryMigemo(FinderMultiQuery):
-    import re
-
     dictionary_path = "/usr/local/share/migemo/utf-8/migemo-dict"
     minimum_query_length = 2
 
@@ -191,6 +188,7 @@ class FinderMultiQueryMigemo(FinderMultiQuery):
                 regexp_string = self.migemo.query(needle)
             else:
                 regexp_string = needle
+            import re
             return re.compile(regexp_string)
         except:
             return None
