@@ -104,10 +104,10 @@ def read_input(filename, encoding):
 
 def decide_match_method(options):
     if options.match_method == "regex":
-        from percol import FinderMultiQueryRegex
+        from percol.finder import FinderMultiQueryRegex
         return FinderMultiQueryRegex
     else:
-        from percol import FinderMultiQueryString
+        from percol.finder import FinderMultiQueryString
         return FinderMultiQueryString
 
 if __name__ == "__main__":
