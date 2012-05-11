@@ -63,12 +63,11 @@ class Finder(object):
 # ============================================================ #
 
 class FinderMultiQuery(Finder):
-    def __init__(self, collection, split_str = " ", split_re = None):
+    def __init__(self, collection, split_str = " "):
         Finder.__init__(self)
 
         self.collection = collection
         self.split_str  = split_str
-        self.split_re   = split_re
 
     case_insensitive = True
 
@@ -76,10 +75,12 @@ class FinderMultiQuery(Finder):
 
     def find(self, query, collection = None):
         query_is_empty = query == ""
-        use_re = not self.split_re is None
 
+        # Arrange queries
         if self.case_insensitive:
             query = query.lower()
+        queries = [self.transform_query(sub_query)
+                   for sub_query in query.split(self.split_str)]
 
         if collection is None:
             collection = self.collection
@@ -92,10 +93,6 @@ class FinderMultiQuery(Finder):
                     line_to_match = line.lower()
                 else:
                     line_to_match = line
-                if use_re:
-                    queries = re.split(self.split_re, line_to_match)
-                else:
-                    queries = query.split(self.split_str)
                 res = self.find_queries(queries, line_to_match)
 
             if res:
@@ -109,7 +106,7 @@ class FinderMultiQuery(Finder):
         and_search = self.and_search
 
         for subq in sub_queries:
-            if subq != "":
+            if subq:
                 find_info = self.find_query(subq, line)
                 if find_info:
                     res.append((subq, find_info))
@@ -124,6 +121,10 @@ class FinderMultiQuery(Finder):
         # where `pos1', `pos2', ... are begining positions of all occurence of needle in `haystack'
         # and `pos1_len', `pos2_len', ... are its length.
         pass
+
+    # override this method if needed
+    def transform_query(self, query):
+        return query
 
 # ============================================================ #
 # Finder > AND search
@@ -150,12 +151,18 @@ class FinderMultiQueryString(FinderMultiQuery):
 # Finder > AND search > Regular Expression
 # ============================================================ #
 
-import re
-
 class FinderMultiQueryRegex(FinderMultiQuery):
+    import re
+
+    def transform_query(self, needle):
+        try:
+            return re.compile(needle)
+        except:
+            return None
+
     def find_query(self, needle, haystack):
         try:
-            return [(m.start(), m.end() - m.start())
-                    for m in re.finditer(needle, haystack)]
+            matched = needle.search(haystack)
+            return [(matched.start(), matched.end() - matched.start())]
         except:
             return None
