@@ -20,6 +20,7 @@
 import unicodedata
 import types
 import curses
+import re
 
 import markup, debug
 
@@ -279,7 +280,9 @@ class Display(object):
             n = max(self.WIDTH - x, 0)
 
         try:
-            self.screen.addnstr(y, x, self.get_raw_string(s), n, style)
+            sanitized_str = re.sub(r'[\x00-\x08\x0a-\x1f]', '?', s)
+            raw_str = self.get_raw_string(sanitized_str)
+            self.screen.addnstr(y, x, raw_str, n, style)
             return True
         except curses.error:
             return False
