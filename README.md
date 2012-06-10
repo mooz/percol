@@ -79,6 +79,10 @@ You can select and let percol to output multiple candidates by `percol.command.t
 
 `percol.command.mark_all()`, `percol.command.unmark_all()` and `percol.command.toggle_mark_all()` are useful to mark / unmark all candidates at once.
 
+## Z Shell support
+
+A zsh completing-function for percol is available in ((https://github.com/mooz/percol/blob/master/tools/zsh/_percol)).
+
 ## Example
 
 ### Interactive pgrep / pkill
