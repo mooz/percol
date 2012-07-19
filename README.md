@@ -111,7 +111,7 @@ For zsh users, command versions are here (`ppkill` accepts options like `-9`).
             QUERY=""            # options only
         else
             QUERY=$1            # with a query
-            shift
+            [[ $# > 0 ]] && shift
         fi
         ppgrep $QUERY | xargs kill $*
     }
