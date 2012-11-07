@@ -71,7 +71,9 @@ def setup_options(parser):
                       help = "path to the TTY (usually, the value of $TTY)")
     parser.add_option("--rcfile", dest = "rcfile",
                       help = "path to the settings file")
-    parser.add_option("--encoding", dest = "encoding",
+    parser.add_option("--output-encoding", dest = "output_encoding",
+                      help = "encoding for output")
+    parser.add_option("--input-encoding", dest = "input_encoding", default = "utf8",
                       help = "encoding for input and output (default 'utf8')")
     parser.add_option("--query", dest = "query",
                       help = "pre-input query")
@@ -86,10 +88,10 @@ def setup_options(parser):
 
 def set_proper_locale(options):
     locale.setlocale(locale.LC_ALL, '')
-    encoding = locale.getpreferredencoding()
-    if options.encoding:
-        encoding = options.encoding
-    return encoding
+    output_encoding = locale.getpreferredencoding()
+    if options.output_encoding:
+        output_encoding = options.output_encoding
+    return output_encoding
 
 def read_input(filename, encoding):
     if filename:
@@ -135,7 +137,8 @@ if __name__ == "__main__":
 Maybe all descriptors are redirecred.""")
 
     # decide which encoding to use
-    encoding = set_proper_locale(options)
+    output_encoding = set_proper_locale(options)
+    input_encoding = options.input_encoding
 
     with open(ttyname, "r+w") as tty_f:
         if not tty_f.isatty():
@@ -148,7 +151,7 @@ Maybe all descriptors are redirecred.""")
 
         # read input
         try:
-            candidates = read_input(filename, encoding)
+            candidates = read_input(filename, input_encoding)
         except KeyboardInterrupt:
             exit_program("Canceled", show_help = False)
 
@@ -163,8 +166,8 @@ Maybe all descriptors are redirecred.""")
                     query = options.query,
                     caret = options.caret,
                     index = options.index,
-                    encoding = encoding) as percol:
-            load_rc(percol, options.rcfile, encoding)
+                    encoding = output_encoding) as percol:
+            load_rc(percol, options.rcfile, input_encoding)
             exit_code = percol.loop()
 
         exit(exit_code)
