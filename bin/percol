@@ -83,6 +83,8 @@ def setup_options(parser):
                       help = "position of the caret (default length of the `query`)")
     parser.add_option("--initial-index", dest = "index",
                       help = "position of the initial index of the selection (numeric, \"first\" or \"last\")")
+    parser.add_option("--reverse", dest = "reverse", default = False, action="store_true",
+                      help = "whether reverse the order of candidates or not")
     parser.add_option("--peep", action = "store_true", dest = "peep", default = False,
                       help = "exit immediately with doing nothing to cache module files and speed up start-up time")
 
@@ -154,6 +156,8 @@ Maybe all descriptors are redirecred.""")
             candidates = read_input(filename, input_encoding)
         except KeyboardInterrupt:
             exit_program("Canceled", show_help = False)
+        if options.reverse:
+            candidates = reversed(candidates)
 
         # setup actions
         import percol.actions as actions
