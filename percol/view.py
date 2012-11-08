@@ -104,7 +104,7 @@ class SelectorView(object):
             try:
                 self.display_result(rel_pos + voffset, result,
                                     is_current = pos == self.model.index,
-                                    is_marked = self.model.marks[pos])
+                                    is_marked = self.model.get_is_marked(pos))
             except curses.error as e:
                 debug.log("display_results", str(e))
 

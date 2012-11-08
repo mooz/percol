@@ -52,7 +52,7 @@ class SelectorCommand(object):
     # ------------------------------------------------------------ #
 
     def toggle_mark(self):
-        self.model.set_mark(not self.model.get_mark())
+        self.model.set_is_marked(not self.model.get_is_marked())
 
     def toggle_mark_and_next(self):
         self.toggle_mark()
@@ -63,15 +63,15 @@ class SelectorCommand(object):
 
     def mark_all(self):
         for mark_index in self.__get_all_mark_indices():
-            self.model.set_mark(True, mark_index)
+            self.model.set_is_marked(True, mark_index)
 
     def unmark_all(self):
         for mark_index in self.__get_all_mark_indices():
-            self.model.set_mark(False, mark_index)
+            self.model.set_is_marked(False, mark_index)
 
     def toggle_mark_all(self):
         for mark_index in self.__get_all_mark_indices():
-            self.model.set_mark(not self.model.get_mark(mark_index), mark_index)
+            self.model.set_is_marked(not self.model.get_is_marked(mark_index), mark_index)
 
     # ------------------------------------------------------------ #
     # Caret

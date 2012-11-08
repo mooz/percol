@@ -50,7 +50,7 @@ class SelectorModel(object):
     def setup_results(self, query):
         self.query   = self.old_query = query or u""
         self.results = self.finder.get_results(self.query)
-        self.marks   = [False] * self.results_count
+        self.marks   = {}
 
     def setup_caret(self, caret):
         if isinstance(caret, types.StringType) or isinstance(caret, types.UnicodeType):
@@ -81,7 +81,7 @@ class SelectorModel(object):
         with self.percol.global_lock:
             self.index = 0
             self.results = self.finder.get_results(query)
-            self.marks   = [False] * self.results_count
+            self.marks   = {}
 
     def get_result(self, index):
         try:
@@ -125,20 +125,20 @@ class SelectorModel(object):
 
     def get_marked_results_with_index(self):
         if self.marks:
-            return [(self.results[i][0], i, self.results[i][2])
-                    for i, marked in enumerate(self.marks) if marked]
+            return [(self.results[index][0], index, self.results[index][2])
+                    for index in self.marks if self.get_is_marked(index)]
         else:
             return []
 
-    def set_mark(self, marked, index = None):
+    def set_is_marked(self, marked, index = None):
         if index is None:
-            index = self.index
+            index = self.index          # use current index
         self.marks[index] = marked
 
-    def get_mark(self, index = None):
+    def get_is_marked(self, index = None):
         if index is None:
-            index = self.index
-        return self.marks[index]
+            index = self.index          # use current index
+        return self.marks.get(index, False)
 
     # ------------------------------------------------------------ #
     # Caret position
