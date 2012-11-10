@@ -96,15 +96,15 @@ def set_proper_locale(options):
     return output_encoding
 
 def read_input(filename, encoding):
+    # TODO: carefully close stream at program exit
     if filename:
-        with open(filename, "r") as f:
-            content = f.read()
+        stream = open(filename, "r")
     else:
-        content = sys.stdin.read()
-    candidates = unicode(content, encoding, "replace").split("\n")
-    if len(candidates) > 0 and candidates[-1] == "":
-        candidates.pop(-1)
-    return candidates
+        stream = sys.stdin
+
+    for line in stream:
+        yield unicode(line.rstrip("\r\n"), encoding, "replace")
+    stream.close()
 
 def decide_match_method(options):
     if options.match_method == "regex":

@@ -75,9 +75,14 @@ class Percol(object):
 
         self.actions = actions
 
+        # wraps candidates (iterator)
+        from lazyarray import LazyArray
+        re_iterable_candidates = LazyArray(candidates)
+
         # create model
         self.model_candidate = SelectorModel(percol = self,
-                                             collection = candidates, finder = finder,
+                                             collection = re_iterable_candidates,
+                                             finder = finder,
                                              query = query, caret = caret, index = index)
         self.model_action = SelectorModel(percol = self,
                                           collection = [action.desc for action in actions],

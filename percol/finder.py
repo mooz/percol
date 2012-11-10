@@ -18,6 +18,7 @@
 #
 
 from abc import ABCMeta, abstractmethod
+from lazyarray import LazyArray
 
 # ============================================================ #
 # Finder
@@ -27,44 +28,57 @@ class Finder(object):
     __metaclass__ = ABCMeta
 
     def __init__(self):
-        self.results_cache = {}
-
-    smart_narrowing = False
+        pass
 
     @abstractmethod
     def find(self, query, collection = None):
         pass
 
-    def get_smart_collection(self, query):
+    lazy_finding = False
+    def get_results(self, query, collection = None):
+        if self.lazy_finding:
+            return LazyArray(self.get_results_generator(query, collection))
+        else:
+            return [result for result in self.get_results_generator(query, collection)]
+
+    def get_results_generator(self, query, collection = None):
+        for result in self.find(query, collection):
+            yield result
+
+# ============================================================ #
+# Cached Finder
+# ============================================================ #
+
+class CachedFinder(Finder):
+    def __init__(self):
+        self.results_cache = {}
+
+    def get_collection_from_trie(self, query):
+        """
+        If any prefix of the query matches a past query, use its
+        result as a collection to improve performance (prefix of the
+        query constructs a trie)
+        """
         for i in xrange(len(query) - 1, 0, -1):
-            q = query[0:i]
-            if self.results_cache.has_key(q):
-                return (line for (line, res, idx) in self.results_cache[q])
+            query_prefix = query[0:i]
+            if self.results_cache.has_key(query_prefix):
+                return (line for (line, res, idx) in self.results_cache[query_prefix])
         return None
 
+    lazy_finding = True
     def get_results(self, query):
         if self.results_cache.has_key(query):
             return self.results_cache[query]
-        else:
-            collection = None
-
-            if self.smart_narrowing:
-                collection = self.get_smart_collection(query)
-
-            if collection is None:
-                collection = self.collection
-
-            results = [result for result in self.find(query, collection)]
-            self.results_cache[query] = results
-            return results
+        collection = self.get_collection_from_trie(query) or self.collection
+        return Finder.get_results(self, query, collection)
 
 # ============================================================ #
 # Finder > multiquery
 # ============================================================ #
 
-class FinderMultiQuery(Finder):
+class FinderMultiQuery(CachedFinder):
     def __init__(self, collection, split_str = " "):
-        Finder.__init__(self)
+        CachedFinder.__init__(self)
 
         self.collection = collection
         self.split_str  = split_str
@@ -131,7 +145,7 @@ class FinderMultiQuery(Finder):
 # ============================================================ #
 
 class FinderMultiQueryString(FinderMultiQuery):
-    smart_narrowing = True
+    trie_style_matching = True
 
     def find_query(self, needle, haystack):
         stride = len(needle)

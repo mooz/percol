@@ -109,6 +109,12 @@ class SelectorModel(object):
 
     def select_index(self, idx):
         if self.results_count > 0:
+            try:
+                # For lazy results, correct "results_count" by getting
+                # items (if available)
+                self.results[idx]
+            except:
+                pass
             self.index = idx % self.results_count
         else:
             self.index = 0
