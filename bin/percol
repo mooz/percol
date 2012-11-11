@@ -95,14 +95,16 @@ def set_proper_locale(options):
         output_encoding = options.output_encoding
     return output_encoding
 
-def read_input(filename, encoding):
-    # TODO: carefully close stream at program exit
+def read_input(filename, encoding, reverse=False):
     if filename:
         stream = open(filename, "r")
     else:
         stream = sys.stdin
-
-    for line in stream:
+    if reverse:
+        lines = reversed(stream.readlines())
+    else:
+        lines = stream
+    for line in lines:
         yield unicode(line.rstrip("\r\n"), encoding, "replace")
     stream.close()
 
@@ -153,11 +155,9 @@ Maybe all descriptors are redirecred.""")
 
         # read input
         try:
-            candidates = read_input(filename, input_encoding)
+            candidates = read_input(filename, input_encoding, reverse=options.reverse)
         except KeyboardInterrupt:
             exit_program("Canceled", show_help = False)
-        if options.reverse:
-            candidates = reversed(candidates)
 
         # setup actions
         import percol.actions as actions
