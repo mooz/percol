@@ -39,9 +39,7 @@ from percol import ansi
 INSTRUCTION_TEXT = ansi.markup("""<bold><blue>{logo}</blue></bold>
                                 <on_blue><underline> {version} </underline></on_blue>
 
-<red><bold>Warning:</bold></red>
-You are running percol in an <underline>interactive input mode</underline>.
-Typical usage of percol are listed below.
+You did not give any inputs to <underline>percol</underline>. Check following typical usages and try again.
 
 <underline>(1) Giving a filename,</underline>
 
@@ -51,7 +49,6 @@ Typical usage of percol are listed below.
 
  $ ps aux | <underline>percol</underline>
 
-You can exit percol by pressing <on_blue> CTRL+C </on_blue> key.
 """).format(logo = percol.__logo__,
             version = percol.__version__)
 
@@ -154,6 +151,7 @@ Maybe all descriptors are redirecred.""")
 
         if filename is None and sys.stdin.isatty():
             tty_f.write(INSTRUCTION_TEXT)
+            exit_program(show_help = False)
 
         # read input
         try:
