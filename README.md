@@ -125,8 +125,8 @@ In your `.zshrc`, put the lines below.
     if exists percol; then
         function percol_select_history() {
             local tac
-            exists gtac && tac=gtac || tac=tac
-            BUFFER=$($tac $HISTFILE | sed 's/^: [0-9]*:[0-9]*;//' | percol --query "$LBUFFER")
+            exists gtac && tac="gtac" || exists tac && tac="tac" || tac="tail -r"
+            BUFFER=$(history -n 1 | eval $tac | percol --query "$LBUFFER")
             CURSOR=$#BUFFER         # move cursor
             zle -R -c               # refresh
         }
