@@ -97,7 +97,7 @@ class SelectorModel(object):
         if not results:
             try:
                 index = self.index
-                result = self.results[index]
+                result = self.results[index] # EAFP (results may be a zero-length list)
                 results.append((result[0], index, result[2]))
             except Exception as e:
                 debug.log("get_selected_results_with_index", e)
