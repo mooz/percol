@@ -152,7 +152,8 @@ class Display(object):
         return COLOR_COUNT if number < 0 else number
 
     def get_pair_number(self, fg, bg):
-        return self.get_normalized_number(fg) + self.get_normalized_number(bg) * COLOR_COUNT
+        # Assume the number of colors is up to 16 (2^4 = 16)
+        return self.get_normalized_number(fg) + (self.get_normalized_number(bg) << 4)
 
     def get_color_pair(self, fg, bg):
         return curses.color_pair(self.get_pair_number(fg, bg))
