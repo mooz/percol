@@ -37,20 +37,16 @@ class Finder(object):
     lazy_finding = True
     def get_results(self, query, collection = None):
         if self.lazy_finding:
-            return LazyArray(self.get_results_generator(query, collection))
+            return LazyArray((result for result in self.find(query, collection)))
         else:
-            return [result for result in self.get_results_generator(query, collection)]
-
-    def get_results_generator(self, query, collection = None):
-        for result in self.find(query, collection):
-            yield result
+            return [result for result in self.find(query, collection)]
 
 # ============================================================ #
 # Cached Finder
 # ============================================================ #
 
 class CachedFinder(Finder):
-    def __init__(self):
+    def __init__(self, *args):
         self.results_cache = {}
 
     def get_collection_from_trie(self, query):
