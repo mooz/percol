@@ -114,7 +114,7 @@ class Display(object):
             FG_COLORS["default"]    = -1
             BG_COLORS["on_default"] = -1
             self.init_color_pairs()
-        elif curses.COLORS != 0: 
+        elif curses.COLORS != 0:
             # ansi linux rxvt ...etc.
             curses.use_default_colors()
             self.init_color_pairs()
