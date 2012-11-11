@@ -77,6 +77,8 @@ def setup_options(parser):
                       help = "encoding for input and output (default 'utf8')")
     parser.add_option("--query", dest = "query",
                       help = "pre-input query")
+    parser.add_option("--eager", action = "store_true", dest = "eager", default = False,
+                      help = "suppress lazy matching (slower, but display correct candidates count)")
     parser.add_option("--match-method", dest = "match_method", default = "",
                       help = "specify matching method for query. `string` (default) and `regex` are currently supported")
     parser.add_option("--caret-position", dest = "caret",
@@ -163,10 +165,14 @@ Maybe all descriptors are redirecred.""")
         import percol.actions as actions
         acts = (actions.output_to_stdout, actions.output_to_stdout_double)
 
+        # arrange finder
+        finder = finder = decide_match_method(options)
+        finder.lazy_finding = not options.eager
+
         with Percol(descriptors = tty.reconnect_descriptors(tty_f),
                     candidates = candidates,
                     actions = acts,
-                    finder = decide_match_method(options),
+                    finder = finder,
                     query = options.query,
                     caret = options.caret,
                     index = options.index,

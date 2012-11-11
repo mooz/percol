@@ -34,7 +34,7 @@ class Finder(object):
     def find(self, query, collection = None):
         pass
 
-    lazy_finding = False
+    lazy_finding = True
     def get_results(self, query, collection = None):
         if self.lazy_finding:
             return LazyArray(self.get_results_generator(query, collection))
@@ -65,7 +65,6 @@ class CachedFinder(Finder):
                 return (line for (line, res, idx) in self.results_cache[query_prefix])
         return None
 
-    lazy_finding = True
     def get_results(self, query):
         if self.results_cache.has_key(query):
             return self.results_cache[query]
