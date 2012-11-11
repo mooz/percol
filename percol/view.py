@@ -24,7 +24,7 @@ import math
 
 from itertools import islice
 
-import display, theme
+import display, theme, debug
 
 class SelectorView(object):
     def __init__(self, percol = None):
