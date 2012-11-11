@@ -24,13 +24,18 @@ import math
 
 from itertools import islice
 
-import display, theme, debug
+import display, debug
 
 class SelectorView(object):
     def __init__(self, percol = None):
         self.percol  = percol
         self.screen  = percol.screen
         self.display = percol.display
+
+    CANDIDATES_LINE_BASIC    = ("on_default", "default")
+    CANDIDATES_LINE_SELECTED = ("underline", "on_magenta", "white")
+    CANDIDATES_LINE_MARKED   = ("bold", "on_cyan", "black")
+    CANDIDATES_LINE_QUERY    = ("yellow", "bold")
 
     @property
     def RESULTS_DISPLAY_MAX(self):
@@ -65,20 +70,20 @@ class SelectorView(object):
 
     def display_line(self, y, x, s, style = None):
         if style is None:
-            style = theme.CANDIDATES_LINE_BASIC
+            style = self.CANDIDATES_LINE_BASIC
         self.display.add_aligned_string(s, y_offset = y, x_offset = x, style = style, fill = True)
 
     def display_result(self, y, result, is_current = False, is_marked = False):
         line, find_info, abs_idx = result
 
         if is_current:
-            line_style = theme.CANDIDATES_LINE_SELECTED
+            line_style = self.CANDIDATES_LINE_SELECTED
         elif is_marked:
-            line_style = theme.CANDIDATES_LINE_MARKED
+            line_style = self.CANDIDATES_LINE_MARKED
         else:
-            line_style = theme.CANDIDATES_LINE_BASIC
+            line_style = self.CANDIDATES_LINE_BASIC
 
-        keyword_style = theme.CANDIDATES_LINE_QUERY + line_style
+        keyword_style = self.CANDIDATES_LINE_QUERY + line_style
 
         self.display_line(y, 0, line, style = line_style)
 
