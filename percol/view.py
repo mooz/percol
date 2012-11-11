@@ -82,6 +82,8 @@ class SelectorView(object):
 
         self.display_line(y, 0, line, style = line_style)
 
+        if find_info is None:
+            return
         for (subq, match_info) in find_info:
             for x_offset, subq_len in match_info:
                 try:
