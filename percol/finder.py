@@ -186,9 +186,9 @@ class FinderMultiQueryMigemo(FinderMultiQuery):
     migemo_instance = None
     @property
     def migemo(self):
-        import migemo
+        import migemo, os
         if self.migemo_instance is None:
-            self.migemo_instance = migemo.Migemo(self.dictionary_path)
+            self.migemo_instance = migemo.Migemo(os.path.expanduser(self.dictionary_path))
         return self.migemo_instance
 
     def transform_query(self, needle):
