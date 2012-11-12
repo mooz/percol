@@ -108,7 +108,9 @@ class Display(object):
 
         curses.start_color()
 
-        if curses.COLORS > COLOR_COUNT:
+        self.has_default_colors = curses.COLORS > COLOR_COUNT
+
+        if self.has_default_colors:
             # xterm-256color
             curses.use_default_colors()
             FG_COLORS["default"]    = -1
@@ -152,8 +154,11 @@ class Display(object):
         return COLOR_COUNT if number < 0 else number
 
     def get_pair_number(self, fg, bg):
-        # Assume the number of colors is up to 16 (2^4 = 16)
-        return self.get_normalized_number(fg) + (self.get_normalized_number(bg) << 4)
+        if self.has_default_colors:
+            # Assume the number of colors is up to 16 (2^4 = 16)
+            return self.get_normalized_number(fg) + (self.get_normalized_number(bg) << 4)
+        else:
+            return self.get_normalized_number(fg) + self.get_normalized_number(bg) * COLOR_COUNT
 
     def get_color_pair(self, fg, bg):
         return curses.color_pair(self.get_pair_number(fg, bg))
