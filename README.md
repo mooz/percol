@@ -10,6 +10,8 @@
 percol adds flavor of interactive selection to the traditional pipe concept on UNIX
 
 - [Installation](#installation)
+  - [PyPI](#pypi)
+  - [Manual](#manual)
 - [Usage](#usage)
 - [Example](#example)
   - [Interactive pgrep / pkill](#interactive-pgrep--pkill)
@@ -29,6 +31,12 @@ percol adds flavor of interactive selection to the traditional pipe concept on U
  - [Z Shell support](#z-shell-support)
 
 ## Installation
+
+### PyPI
+
+    $ sudo pip install percol
+
+### Manual
 
 First, clone percol repository and go into the directory.
 
