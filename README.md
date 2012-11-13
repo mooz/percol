@@ -99,7 +99,7 @@ function exists { which $1 &> /dev/null }
 if exists percol; then
     function percol_select_history() {
         local tac
-        exists gtac && tac="gtac" || exists tac && tac="tac" || tac="tail -r"
+        exists gtac && tac="gtac" || { exists tac && tac="tac" || { tac="tail -r" } }
         BUFFER=$(history -n 1 | eval $tac | percol --query "$LBUFFER")
         CURSOR=$#BUFFER         # move cursor
         zle -R -c               # refresh
