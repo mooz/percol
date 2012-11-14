@@ -40,7 +40,7 @@ import threading
 import debug, action
 
 from display import Display
-from finder  import FinderMultiQueryString, FinderMultiQueryRegex, FinderMultiQueryMigemo
+from finder  import FinderMultiQueryString
 from key     import KeyHandler
 from model   import SelectorModel
 from view    import SelectorView
@@ -202,9 +202,6 @@ class Percol(object):
 
     keymap = {
         "C-i"         : lambda percol: percol.switch_model(),
-        "M-c"         : lambda percol: percol.command.toggle_case_sensitive(),
-        "M-m"         : lambda percol: percol.command.toggle_finder(FinderMultiQueryMigemo),
-        "M-r"         : lambda percol: percol.command.toggle_finder(FinderMultiQueryRegex),
         # text
         "C-h"         : lambda percol: percol.command.delete_backward_char(),
         "<backspace>" : lambda percol: percol.command.delete_backward_char(),
