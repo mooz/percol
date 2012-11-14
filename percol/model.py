@@ -172,3 +172,23 @@ class SelectorModel(object):
         caret_pos  = self.caret + len(string)
         self.query = self.query[:self.caret] + string + self.query[self.caret:]
         self.caret = caret_pos
+
+    # ------------------------------------------------------------ #
+    # Finder
+    # ------------------------------------------------------------ #
+
+    def remake_finder(self, method):
+        old_finder = self.finder
+        if method == "regex":
+            from percol.finder import FinderMultiQueryRegex
+            self.finder = FinderMultiQueryRegex(collection = old_finder.collection)
+        elif method == "migemo":
+            from percol.finder import FinderMultiQueryMigemo
+            self.finder = FinderMultiQueryMigemo(collection = old_finder.collection)
+        else:
+            from percol.finder import FinderMultiQueryString
+            self.finder = FinderMultiQueryString(collection = old_finder.collection)
+
+        self.finder.lazy_finding = old_finder.lazy_finding
+        self.finder.case_insensitive = old_finder.case_insensitive
+

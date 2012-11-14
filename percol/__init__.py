@@ -160,6 +160,29 @@ class Percol(object):
         else:
             return self.command_candidate
 
+    def toggle_case_sensitive(self):
+        self.model_candidate.finder.toggle_case_sensitive()
+        self.model_action.finder.toggle_case_sensitive()
+        self.model.old_query = u""
+
+    def toggle_migemo(self):
+        if self.model.finder.__class__.__name__ == "FinderMultiQueryMigemo":
+            self.model_candidate.remake_finder("string")
+            self.model_action.remake_finder("string")
+        else:
+            self.model_candidate.remake_finder("migemo")
+            self.model_action.remake_finder("migemo")
+        self.model.old_query = u""
+
+    def toggle_regex(self):
+        if self.model.finder.__class__.__name__ == "FinderMultiQueryRegex":
+            self.model_candidate.remake_finder("string")
+            self.model_action.remake_finder("string")
+        else:
+            self.model_candidate.remake_finder("regex")
+            self.model_action.remake_finder("regex")
+        self.model.old_query = u""
+
     # ============================================================ #
     # Main Loop
     # ============================================================ #
@@ -204,6 +227,9 @@ class Percol(object):
 
     keymap = {
         "C-i"         : lambda percol: percol.switch_model(),
+        "M-c"         : lambda percol: percol.toggle_case_sensitive(),
+        "M-m"         : lambda percol: percol.toggle_migemo(),
+        "M-r"         : lambda percol: percol.toggle_regex(),
         # text
         "C-h"         : lambda percol: percol.command.delete_backward_char(),
         "<backspace>" : lambda percol: percol.command.delete_backward_char(),
