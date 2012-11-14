@@ -25,6 +25,7 @@ class SelectorModel(object):
     def __init__(self,
                  percol, collection, finder,
                  query = None, caret = None, index = None):
+        self.original_finder_class = finder
         self.percol = percol
         self.finder = finder(collection)
         self.setup_results(query)
@@ -77,11 +78,22 @@ class SelectorModel(object):
     # Result handling
     # ============================================================ #
 
+    search_forced = False
+    def force_search(self):
+        self.search_forced = True
+
+    def should_search_again(self):
+        return self.query != self.old_query or self.search_forced
+
+    old_query = u""
     def do_search(self, query):
         with self.percol.global_lock:
             self.index = 0
             self.results = self.finder.get_results(query)
             self.marks   = {}
+            # search finished
+            self.search_forced = False
+            self.old_query = query
 
     def get_result(self, index):
         try:
@@ -177,18 +189,5 @@ class SelectorModel(object):
     # Finder
     # ------------------------------------------------------------ #
 
-    def remake_finder(self, method):
-        old_finder = self.finder
-        if method == "regex":
-            from percol.finder import FinderMultiQueryRegex
-            self.finder = FinderMultiQueryRegex(collection = old_finder.collection)
-        elif method == "migemo":
-            from percol.finder import FinderMultiQueryMigemo
-            self.finder = FinderMultiQueryMigemo(collection = old_finder.collection)
-        else:
-            from percol.finder import FinderMultiQueryString
-            self.finder = FinderMultiQueryString(collection = old_finder.collection)
-
-        self.finder.lazy_finding = old_finder.lazy_finding
-        self.finder.case_insensitive = old_finder.case_insensitive
-
+    def remake_finder(self, new_finder_class):
+        self.finder = self.finder.clone_as(new_finder_class)

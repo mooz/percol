@@ -27,7 +27,16 @@ from lazyarray import LazyArray
 class Finder(object):
     __metaclass__ = ABCMeta
 
-    def __init__(self):
+    def __init__(self, **args):
+        pass
+
+    def clone_as(self, new_finder_class):
+        new_finder = new_finder_class(collection = self.collection)
+        new_finder.lazy_finding = self.lazy_finding
+        return new_finder
+
+    @abstractmethod
+    def get_name(self):
         pass
 
     @abstractmethod
@@ -46,7 +55,7 @@ class Finder(object):
 # ============================================================ #
 
 class CachedFinder(Finder):
-    def __init__(self, *args):
+    def __init__(self, **args):
         self.results_cache = {}
 
     def get_collection_from_trie(self, query):
@@ -77,6 +86,12 @@ class FinderMultiQuery(CachedFinder):
 
         self.collection = collection
         self.split_str  = split_str
+
+    def clone_as(self, new_finder_class):
+        new_finder = Finder.clone_as(self, new_finder_class)
+        new_finder.case_insensitive = self.case_insensitive
+        new_finder.and_search = self.and_search
+        return new_finder
 
     case_insensitive = True
 
@@ -143,6 +158,9 @@ class FinderMultiQuery(CachedFinder):
 # ============================================================ #
 
 class FinderMultiQueryString(FinderMultiQuery):
+    def get_name(self):
+        return "string"
+
     trie_style_matching = True
 
     def find_query(self, needle, haystack):
@@ -164,6 +182,9 @@ class FinderMultiQueryString(FinderMultiQuery):
 # ============================================================ #
 
 class FinderMultiQueryRegex(FinderMultiQuery):
+    def get_name(self):
+        return "regex"
+
     def transform_query(self, needle):
         try:
             import re
@@ -183,6 +204,9 @@ class FinderMultiQueryRegex(FinderMultiQuery):
 # ============================================================ #
 
 class FinderMultiQueryMigemo(FinderMultiQuery):
+    def get_name(self):
+        return "migemo"
+
     dictionary_path = "/usr/local/share/migemo/utf-8/migemo-dict"
     minimum_query_length = 2
 

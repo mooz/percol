@@ -131,3 +131,18 @@ class SelectorCommand(object):
     def yank(self):
         if self.model.killed:
             self.model.insert_string(self.model.killed)
+
+    # ------------------------------------------------------------ #
+    # Finder
+    # ------------------------------------------------------------ #
+
+    def toggle_case_sensitive(self):
+        self.model.finder.toggle_case_sensitive()
+        self.model.force_search()
+
+    def toggle_finder(self, preferred_finder_class):
+        if self.model.finder.__class__ == preferred_finder_class:
+            self.model.remake_finder(self.model.original_finder_class)
+        else:
+            self.model.remake_finder(preferred_finder_class)
+        self.model.force_search()

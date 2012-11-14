@@ -40,7 +40,7 @@ import threading
 import debug, action
 
 from display import Display
-from finder  import FinderMultiQueryString, FinderMultiQueryRegex
+from finder  import FinderMultiQueryString, FinderMultiQueryRegex, FinderMultiQueryMigemo
 from key     import KeyHandler
 from model   import SelectorModel
 from view    import SelectorView
@@ -160,29 +160,6 @@ class Percol(object):
         else:
             return self.command_candidate
 
-    def toggle_case_sensitive(self):
-        self.model_candidate.finder.toggle_case_sensitive()
-        self.model_action.finder.toggle_case_sensitive()
-        self.model.old_query = u""
-
-    def toggle_migemo(self):
-        if self.model.finder.__class__.__name__ == "FinderMultiQueryMigemo":
-            self.model_candidate.remake_finder("string")
-            self.model_action.remake_finder("string")
-        else:
-            self.model_candidate.remake_finder("migemo")
-            self.model_action.remake_finder("migemo")
-        self.model.old_query = u""
-
-    def toggle_regex(self):
-        if self.model.finder.__class__.__name__ == "FinderMultiQueryRegex":
-            self.model_candidate.remake_finder("string")
-            self.model_action.remake_finder("string")
-        else:
-            self.model_candidate.remake_finder("regex")
-            self.model_action.remake_finder("regex")
-        self.model.old_query = u""
-
     # ============================================================ #
     # Main Loop
     # ============================================================ #
@@ -201,10 +178,8 @@ class Percol(object):
             try:
                 self.handle_key(self.screen.getch())
 
-                if self.model.query != self.model.old_query:
+                if self.model.should_search_again():
                     # search again
-                    self.model.old_query = self.model.query
-
                     with self.global_lock:
                         # critical section
                         if not self.result_updating_timer is None:
@@ -227,9 +202,9 @@ class Percol(object):
 
     keymap = {
         "C-i"         : lambda percol: percol.switch_model(),
-        "M-c"         : lambda percol: percol.toggle_case_sensitive(),
-        "M-m"         : lambda percol: percol.toggle_migemo(),
-        "M-r"         : lambda percol: percol.toggle_regex(),
+        "M-c"         : lambda percol: percol.command.toggle_case_sensitive(),
+        "M-m"         : lambda percol: percol.command.toggle_finder(FinderMultiQueryMigemo),
+        "M-r"         : lambda percol: percol.command.toggle_finder(FinderMultiQueryRegex),
         # text
         "C-h"         : lambda percol: percol.command.delete_backward_char(),
         "<backspace>" : lambda percol: percol.command.delete_backward_char(),
