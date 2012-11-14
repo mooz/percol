@@ -12,21 +12,22 @@ percol adds flavor of interactive selection to the traditional pipe concept on U
 - [Installation](#installation)
 - [Usage](#usage)
 - [Example](#example)
-  - [Interactive pgrep / pkill](#interactive-pgrep--pkill)
-  - [zsh history search](#zsh-history-search)
-  - [tmux](#tmux)
+    - [Interactive pgrep / pkill](#interactive-pgrep--pkill)
+    - [zsh history search](#zsh-history-search)
+    - [tmux](#tmux)
 - [Configuration](#configuration)
-  - [Customizing styles](#customizing-styles)
-   - [Foreground Colors](#foreground-colors)
-   - [Background Color](#background-color)
-   - [Attributes](#attributes)
+    - [Customizing styles](#customizing-styles)
+        - [Foreground Colors](#foreground-colors)
+        - [Background Color](#background-color)
+        - [Attributes](#attributes)
 - [Matching Method](#matching-method)
-  - [Migemo support](#migemo-support)
-  - [Dictionary settings](#dictionary-settings)
-  - [Minimum query length](#minimum-query-length)
+    - [Migemo support](#migemo-support)
+        - [Dictionary settings](#dictionary-settings)
+        - [Minimum query length](#minimum-query-length)
+    - [Switching matching method dynamically](#switching-matching-method-dynamically)
 - [Tips](#tips)
- - [Selecting multiple candidates](#selecting-multiple-candidates)
- - [Z Shell support](#z-shell-support)
+    - [Selecting multiple candidates](#selecting-multiple-candidates)
+    - [Z Shell support](#z-shell-support)
 
 ## Installation
 
@@ -235,6 +236,19 @@ To change this behavior, change the value of `FinderMultiQueryMigemo.minimum_que
 ```python
 from percol.finder import FinderMultiQueryMigemo
 FinderMultiQueryMigemo.minimum_query_length = 1
+```
+
+### Switching matching method dynamically
+
+Matching method can be switched dynamically (at run time) by executing `percol.command.specify_finder(FinderClass)` or `percol.command.toggle_finder(FinderClass)`. In addition, `percol.command.specify_case_sensitive(case_sensitive)` and `percol.command.toggle_case_sensitive()` change the matching status of case sensitivity.
+
+```python
+from percol.finder import FinderMultiQueryMigemo, FinderMultiQueryRegex
+percol.import_keymap({
+    "M-c" : lambda percol: percol.command.toggle_case_sensitive(),
+    "M-m" : lambda percol: percol.command.toggle_finder(FinderMultiQueryMigemo),
+    "M-r" : lambda percol: percol.command.toggle_finder(FinderMultiQueryRegex)
+})
 ```
 
 ## Tips
