@@ -135,6 +135,9 @@ class FinderMultiQuery(CachedFinder):
     def transform_query(self, query):
         return query
 
+    def toggle_case_sensitive(self):
+        self.case_insensitive = not self.case_insensitive
+
 # ============================================================ #
 # Finder > AND search
 # ============================================================ #

@@ -82,6 +82,8 @@ def setup_options(parser):
                       help = "position of the caret (default length of the `query`)")
     parser.add_option("--initial-index", dest = "index",
                       help = "position of the initial index of the selection (numeric, \"first\" or \"last\")")
+    parser.add_option("--case-sensitive", dest = "case_sensitive", default = False, action="store_true",
+                      help = "whether distinguish the case of query or not")
     parser.add_option("--reverse", dest = "reverse", default = False, action="store_true",
                       help = "whether reverse the order of candidates or not")
     parser.add_option("--peep", action = "store_true", dest = "peep", default = False,
@@ -166,6 +168,7 @@ Maybe all descriptors are redirecred.""")
         # arrange finder
         finder = finder = decide_match_method(options)
         finder.lazy_finding = not options.eager
+        finder.case_insensitive = not options.case_sensitive
 
         with Percol(descriptors = tty.reconnect_descriptors(tty_f),
                     candidates = candidates,
