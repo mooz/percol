@@ -136,8 +136,16 @@ class SelectorCommand(object):
     # Finder
     # ------------------------------------------------------------ #
 
+    def specify_case_sensitive(self, case_sensitive):
+        self.model.finder.case_insensitive = not case_sensitive
+        self.model.force_search()
+
     def toggle_case_sensitive(self):
-        self.model.finder.toggle_case_sensitive()
+        self.model.finder.case_insensitive = not self.model.finder.case_insensitive
+        self.model.force_search()
+
+    def specify_finder(self, preferred_finder_class):
+        self.model.remake_finder(preferred_finder_class)
         self.model.force_search()
 
     def toggle_finder(self, preferred_finder_class):
