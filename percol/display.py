@@ -167,7 +167,7 @@ class Display(object):
     def get_pair_number(self, fg, bg):
         if self.has_default_colors:
             # Assume the number of colors is up to 16 (2^4 = 16)
-            return self.get_normalized_number(fg) + (self.get_normalized_number(bg) << 4)
+            return self.get_normalized_number(fg) | (self.get_normalized_number(bg) << 4)
         else:
             return self.get_normalized_number(fg) + self.get_normalized_number(bg) * COLOR_COUNT
 
