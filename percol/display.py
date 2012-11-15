@@ -215,7 +215,7 @@ class Display(object):
         org_pos_x = pos_x
 
         for i, (s, attrs) in enumerate(tokens):
-            self.add_string(s, pos_y, pos_x, self.attrs_to_style(attrs), n = len(self.get_raw_string(s)))
+            self.add_string(s, pos_y, pos_x, self.attrs_to_style(attrs))
             pos_x += dis_lens[i]
 
         if fill:
@@ -234,7 +234,7 @@ class Display(object):
         pos_x = self.get_pos_x(x_align, x_offset, dis_len)
         pos_y = self.get_pos_y(y_align, y_offset)
 
-        self.add_string(s, pos_y, pos_x, style, n = len(self.get_raw_string(s)))
+        self.add_string(s, pos_y, pos_x, style)
 
         if fill:
             if fill_style is None:
@@ -282,13 +282,21 @@ class Display(object):
         if style.__class__ != types.IntType:
             style = self.attrs_to_style(style)
 
-        if x + n > self.WIDTH:
-            n = max(self.WIDTH - x, 0)
+        # Compute bytes count of the substring that fits in the screen
+        bytes_count_to_display = 0
+        display_length = 0
+        for unicode_char in s:
+            display_length += display_len(unicode_char)
+            char_bytes_count = len(unicode_char.encode(self.encoding))
+            bytes_count_to_display += char_bytes_count
+            if display_length > n:
+                bytes_count_to_display -= char_bytes_count
+                break
 
         try:
             sanitized_str = re.sub(r'[\x00-\x08\x0a-\x1f]', '?', s)
             raw_str = self.get_raw_string(sanitized_str)
-            self.screen.addnstr(y, x, raw_str, n, style)
+            self.screen.addnstr(y, x, raw_str, bytes_count_to_display, style)
             return True
         except curses.error:
             return False
