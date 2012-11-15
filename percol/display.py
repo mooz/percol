@@ -96,6 +96,18 @@ def screen_len(s, beg = None, end = None):
 
     return dis_len
 
+def screen_length_to_bytes_count(string, screen_length_limit, encoding):
+    bytes_count = 0
+    screen_length = 0
+    for unicode_char in string:
+        screen_length += screen_len(unicode_char)
+        char_bytes_count = len(unicode_char.encode(encoding))
+        bytes_count += char_bytes_count
+        if screen_length > screen_length_limit:
+            bytes_count -= char_bytes_count
+            break
+    return bytes_count
+
 # ============================================================ #
 # Display
 # ============================================================ #
@@ -283,15 +295,7 @@ class Display(object):
             style = self.attrs_to_style(style)
 
         # Compute bytes count of the substring that fits in the screen
-        bytes_count_to_display = 0
-        screen_length = 0
-        for unicode_char in s:
-            screen_length += screen_len(unicode_char)
-            char_bytes_count = len(unicode_char.encode(self.encoding))
-            bytes_count_to_display += char_bytes_count
-            if screen_length > n:
-                bytes_count_to_display -= char_bytes_count
-                break
+        bytes_count_to_display = screen_length_to_bytes_count(s, n, self.encoding)
 
         try:
             sanitized_str = re.sub(r'[\x00-\x08\x0a-\x1f]', '?', s)
