@@ -130,7 +130,6 @@ class Display(object):
             self.init_color_pairs()
         elif curses.COLORS != 0:
             # ansi linux rxvt ...etc.
-            curses.use_default_colors()
             self.init_color_pairs()
             FG_COLORS["default"]    = curses.COLOR_WHITE
             BG_COLORS["on_default"] = curses.COLOR_BLACK
