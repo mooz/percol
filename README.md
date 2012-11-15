@@ -10,6 +10,8 @@
 percol adds flavor of interactive selection to the traditional pipe concept on UNIX
 
 - [Installation](#installation)
+  - [PyPI](#pypi)
+  - [Manual](#manual)
 - [Usage](#usage)
 - [Example](#example)
     - [Interactive pgrep / pkill](#interactive-pgrep--pkill)
@@ -33,6 +35,12 @@ percol adds flavor of interactive selection to the traditional pipe concept on U
     - [Z Shell support](#z-shell-support)
 
 ## Installation
+
+### PyPI
+
+    $ sudo pip install percol
+
+### Manual
 
 First, clone percol repository and go into the directory.
 
@@ -103,7 +111,7 @@ function exists { which $1 &> /dev/null }
 if exists percol; then
     function percol_select_history() {
         local tac
-        exists gtac && tac="gtac" || exists tac && tac="tac" || tac="tail -r"
+        exists gtac && tac="gtac" || { exists tac && tac="tac" || { tac="tail -r" } }
         BUFFER=$(history -n 1 | eval $tac | percol --query "$LBUFFER")
         CURSOR=$#BUFFER         # move cursor
         zle -R -c               # refresh
