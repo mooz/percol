@@ -59,8 +59,8 @@ class SelectorModel(object):
                 caret = int(caret)
             except ValueError:
                 caret = None
-        if caret is None or caret < 0 or caret > display.display_len(self.query):
-            caret = display.display_len(self.query)
+        if caret is None or caret < 0 or caret > display.screen_len(self.query):
+            caret = display.screen_len(self.query)
         self.caret = caret
 
     def setup_index(self, index):

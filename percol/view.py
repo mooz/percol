@@ -92,7 +92,7 @@ class SelectorView(object):
         for (subq, match_info) in find_info:
             for x_offset, subq_len in match_info:
                 try:
-                    x_offset_real = display.display_len(line, beg = 0, end = x_offset)
+                    x_offset_real = display.screen_len(line, beg = 0, end = x_offset)
                     self.display.add_string(line[x_offset:x_offset + subq_len],
                                             pos_y = y,
                                             pos_x = x_offset_real,
@@ -149,7 +149,7 @@ class SelectorView(object):
 
         for s, attrs in parsed:
             tokens.append((self.format_prompt_string(s, offset), attrs))
-            offset += display.display_len(s)
+            offset += display.screen_len(s)
 
         y, x = self.display.add_aligned_string_tokens(tokens,
                                                       y_offset = y_offset,
@@ -177,7 +177,7 @@ class SelectorView(object):
             # move caret
             if self.caret_x >= 0 and self.caret_y >= 0:
                 self.screen.move(self.caret_y,
-                                 self.caret_x + display.display_len(self.model.query, 0, self.model.caret))
+                                 self.caret_x + display.screen_len(self.model.query, 0, self.model.caret))
         except curses.error:
             pass
 

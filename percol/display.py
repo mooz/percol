@@ -74,7 +74,7 @@ def get_attributes(attrs):
 # Unicode
 # ============================================================ #
 
-def display_len(s, beg = None, end = None):
+def screen_len(s, beg = None, end = None):
     if beg is None:
         beg = 0
     if end is None:
@@ -206,7 +206,7 @@ class Display(object):
                                   y_align = "top", x_align = "left",
                                   y_offset = 0, x_offset = 0,
                                   fill = False, fill_char = " ", fill_style = None):
-        dis_lens  = [display_len(s) for (s, attrs) in tokens]
+        dis_lens  = [screen_len(s) for (s, attrs) in tokens]
         whole_len = sum(dis_lens)
 
         pos_x = self.get_pos_x(x_align, x_offset, whole_len)
@@ -229,7 +229,7 @@ class Display(object):
                            y_offset = 0, x_offset = 0,
                            style = None,
                            fill = False, fill_char = " ", fill_style = None):
-        dis_len = display_len(s)
+        dis_len = screen_len(s)
 
         pos_x = self.get_pos_x(x_align, x_offset, dis_len)
         pos_y = self.get_pos_y(y_align, y_offset)
@@ -284,12 +284,12 @@ class Display(object):
 
         # Compute bytes count of the substring that fits in the screen
         bytes_count_to_display = 0
-        display_length = 0
+        screen_length = 0
         for unicode_char in s:
-            display_length += display_len(unicode_char)
+            screen_length += screen_len(unicode_char)
             char_bytes_count = len(unicode_char.encode(self.encoding))
             bytes_count_to_display += char_bytes_count
-            if display_length > n:
+            if screen_length > n:
                 bytes_count_to_display -= char_bytes_count
                 break
 
