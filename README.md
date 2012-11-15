@@ -16,6 +16,9 @@ percol adds flavor of interactive selection to the traditional pipe concept on U
     - [zsh history search](#zsh-history-search)
     - [tmux](#tmux)
 - [Configuration](#configuration)
+    - [Customizing prompt](#customizing-prompt)
+        - [Dynamic prompt](#dynamic-prompt)
+        - [Custom format specifiers](#custom-format-specifiers)
     - [Customizing styles](#customizing-styles)
         - [Foreground Colors](#foreground-colors)
         - [Background Color](#background-color)
@@ -152,6 +155,57 @@ percol.import_keymap({
     "C-j" : lambda percol: percol.finish(),
     "C-g" : lambda percol: percol.cancel(),
 })
+```
+
+### Customizing prompt
+
+In percol, a prompt consists of two part: _PROMPT_ and _RPROMPT_, like zsh. As the following example shows, each part appearance can be customized by specifying a prompt format into `percol.view.PROMPT` and `percol.view.RPROMPT` respectively.
+
+```python
+percol.view.PROMPT = ur"<blue>Input:</blue> %q"
+percol.view.RPROMPT = ur"(%F) [%i/%I]"
+```
+
+In prompt formats, a character preceded by `%` indicates a _prompt format specifier_ and is expanded into a corresponding system value.
+
+- `%%`
+    - Display `%` itself
+- `%q`
+    - Display query and caret
+- `%Q`
+    - Display query without caret
+- `%n`
+    - Page number
+- `%N`
+    - Total page number
+- `%i`
+    - Current line number
+- `%I`
+    - Total line number
+- `%c`
+    - Caret position
+- `%k`
+    - Last input key
+
+#### Dynamic prompt
+
+By changing percol.view.PROMPT into a getter, percol prompts becomes more fancy.
+
+```python
+# Change prompt in response to the status of case sensitivity
+percol.view.__class__.PROMPT = property(
+    lambda self:
+    ur"<bold><blue>QUERY </blue>[a]:</bold> %q" if percol.model.finder.case_insensitive
+    else ur"<bold><green>QUERY </green>[A]:</bold> %q"
+)
+```
+
+#### Custom format specifiers
+
+```python
+# Display finder name in RPROMPT
+percol.view.prompt_replacees["F"] = lambda self, **args: self.model.finder.get_name()
+percol.view.RPROMPT = ur"(%F) [%i/%I]"
 ```
 
 ### Customizing styles
