@@ -168,7 +168,7 @@ Maybe all descriptors are redirecred.""")
         if (options.quote):
             acts = (actions.output_to_stdout_double_quote, )
         else:
-            acts = (actions.output_to_stdout, actions.output_to_stdout_quote)
+            acts = (actions.output_to_stdout, actions.output_to_stdout_double_quote)
 
         # arrange finder
         finder = finder = decide_match_method(options)
