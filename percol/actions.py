@@ -21,14 +21,19 @@ import sys
 
 from action import action
 
+def double_quote_string(string):
+    return '"' + string.replace('"', r'\"') + '"'
+
 @action()
 def output_to_stdout(lines, percol):
     "output marked (selected) items to stdout"
     for line in lines:
-        sys.stdout.write(percol.display.get_raw_string(line + "\n"))
+        sys.stdout.write(percol.display.get_raw_string(line))
+        sys.stdout.write("\n")
 
 @action()
-def output_to_stdout_double(lines, percol):
-    "output marked (selected) items to stdout by double"
+def output_to_stdout_double_quote(lines, percol):
+    "output marked (selected) items to stdout with double quotes"
     for line in lines:
-        sys.stdout.write(percol.display.get_raw_string(line * 2 + "\n"))
+        sys.stdout.write(percol.display.get_raw_string(double_quote_string(line)))
+        sys.stdout.write("\n")

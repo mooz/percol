@@ -86,6 +86,8 @@ def setup_options(parser):
                       help = "whether distinguish the case of query or not")
     parser.add_option("--reverse", dest = "reverse", default = False, action="store_true",
                       help = "whether reverse the order of candidates or not")
+    parser.add_option("--quote", dest = "quote", default = False, action="store_true",
+                      help = "whether quote the output line")
     parser.add_option("--peep", action = "store_true", dest = "peep", default = False,
                       help = "exit immediately with doing nothing to cache module files and speed up start-up time")
 
@@ -163,7 +165,10 @@ Maybe all descriptors are redirecred.""")
 
         # setup actions
         import percol.actions as actions
-        acts = (actions.output_to_stdout, actions.output_to_stdout_double)
+        if (options.quote):
+            acts = (actions.output_to_stdout_double_quote, )
+        else:
+            acts = (actions.output_to_stdout, actions.output_to_stdout_quote)
 
         # arrange finder
         finder = finder = decide_match_method(options)
