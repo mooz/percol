@@ -1,4 +1,4 @@
 #!/bin/sh
 
 gnome-terminal --title "Find PDF files"  --hide-menubar \
-    -e 'sh -c "evince \"$(find ~/Dropbox/ -name \"*.pdf\" -type f | percol)\""'
+    -x sh -c "find ~/Dropbox/ -name \"*.pdf\" -type f | percol --quote | xargs evince"
