@@ -85,7 +85,7 @@ def setup_options(parser):
     parser.add_option("--eager", action = "store_true", dest = "eager", default = False,
                       help = "suppress lazy matching (slower, but display correct candidates count)")
     parser.add_option("--eval", dest = "string_to_eval",
-                      help = "Eval given string after loading the rc file")
+                      help = "eval given string after loading the rc file")
     parser.add_option("--match-method", dest = "match_method", default = "",
                       help = "specify matching method for query. `string` (default) and `regex` are currently supported")
     parser.add_option("--caret-position", dest = "caret",
