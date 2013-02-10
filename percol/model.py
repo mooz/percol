@@ -135,6 +135,9 @@ class SelectorModel(object):
         self.select_index(0)
 
     def select_bottom(self):
+        from lazyarray import LazyArray
+        if (self.results.__class__ == LazyArray):
+            self.results.pull_all()
         self.select_index(max(self.results_count - 1, 0))
 
     # ------------------------------------------------------------ #
