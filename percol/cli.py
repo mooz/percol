@@ -90,10 +90,16 @@ def setup_options(parser):
                       help = "whether distinguish the case of query or not")
     parser.add_option("--reverse", dest = "reverse", default = False, action="store_true",
                       help = "whether reverse the order of candidates or not")
-    parser.add_option("--prompt-bottom", dest = "prompt_bottom", default = False, action="store_true",
+
+    parser.add_option("--prompt-top", dest = "prompt_on_top", default = None, action="store_true",
+                      help = "display prompt top of the screen (default)")
+    parser.add_option("--prompt-bottom", dest = "prompt_on_top", default = None, action="store_false",
                       help = "display prompt bottom of the screen")
-    parser.add_option("--result-bottom-up", dest = "results_bottom_up", default = False, action="store_true",
+    parser.add_option("--result-top-down", dest = "results_top_down", default = None, action="store_true",
+                      help = "display results top down (default)")
+    parser.add_option("--result-bottom-up", dest = "results_top_down", default = None, action="store_false",
                       help = "display results bottom up instead of top down")
+
     parser.add_option("--quote", dest = "quote", default = False, action="store_true",
                       help = "whether quote the output line")
     parser.add_option("--peep", action = "store_true", dest = "peep", default = False,
@@ -185,6 +191,11 @@ Maybe all descriptors are redirecred.""")
             finder_instance.lazy_finding = not options.eager
             finder_instance.case_insensitive = not options.case_sensitive
 
+        def set_if_not_none(src, dest, name):
+            value = getattr(src, name)
+            if value is not None:
+                setattr(dest, name, value)
+
         with Percol(descriptors = tty.reconnect_descriptors(tty_f),
                     candidates = candidates,
                     actions = acts,
@@ -203,8 +214,8 @@ Maybe all descriptors are redirecred.""")
             set_finder_attribute_from_option(percol.model_candidate.finder)
             set_finder_attribute_from_option(percol.model_action.finder)
             # view settings from option values
-            percol.view.prompt_on_top = not options.prompt_bottom
-            percol.view.results_top_down = not options.results_bottom_up
+            set_if_not_none(options, percol.view, 'prompt_on_top')
+            set_if_not_none(options, percol.view, 'results_top_down')
             # enter main loop
             exit_code = percol.loop()
 
