@@ -48,14 +48,20 @@ class LazyArray(object):
             yield elem
 
     def __getitem__(self, idx):
-        # if element corresponds to specified index is not available,
-        # get lacking results from iterable object
-        from itertools import islice
-        needed_read_count = max(idx - self.read_count + 1, 0)
-        for elem in islice(self.source, 0, needed_read_count):
-            self.read_count = self.read_count + 1
-            self.got_elements.append(elem)
+        # if the element corresponds to the specified index is not
+        # available, pull results from iterable object
+        if idx < 0:
+            self.pull_all()
+        else:
+            from itertools import islice
+            for elem in islice(self, 0, idx + 1):
+                pass
+
         return self.got_elements[idx]
+
+    def pull_all(self):
+        for elem in self:
+            pass
 
 if __name__ == "__main__":
     def getnumbers(n):
@@ -67,3 +73,6 @@ if __name__ == "__main__":
     for idx, x in enumerate(larray):
         print("larray[%d]: %d" % (idx, x))
     print("larray[10]: %d" % larray[10])
+
+    larray2 = LazyArray(getnumbers(20))
+    print("larray2[-1]: %d" % larray2[-1])
