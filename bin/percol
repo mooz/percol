@@ -63,6 +63,15 @@ def load_rc(percol, path = None, encoding = 'utf-8'):
     except Exception as e:
         debug.log("Exception in rc file {0}".format(path), e)
 
+def eval_string(percol, string_to_eval, encoding = 'utf-8'):
+    try:
+        import types
+        if string_to_eval.__class__ != types.UnicodeType:
+            string_to_eval = string_to_eval.decode(encoding)
+        exec(string_to_eval, locals())
+    except Exception as e:
+        debug.log("Exception in eval_string", e)
+
 def setup_options(parser):
     parser.add_option("--tty", dest = "tty",
                       help = "path to the TTY (usually, the value of $TTY)")
@@ -76,6 +85,8 @@ def setup_options(parser):
                       help = "pre-input query")
     parser.add_option("--eager", action = "store_true", dest = "eager", default = False,
                       help = "suppress lazy matching (slower, but display correct candidates count)")
+    parser.add_option("--eval", dest = "string_to_eval",
+                      help = "Eval given string after loading the rc file")
     parser.add_option("--match-method", dest = "match_method", default = "",
                       help = "specify matching method for query. `string` (default) and `regex` are currently supported")
     parser.add_option("--caret-position", dest = "caret",
@@ -184,6 +195,8 @@ Maybe all descriptors are redirecred.""")
                     index = options.index,
                     encoding = output_encoding) as percol:
             load_rc(percol, options.rcfile, input_encoding)
+            if options.string_to_eval is not None:
+                eval_string(percol, options.string_to_eval, locale.getpreferredencoding())
             exit_code = percol.loop()
 
         exit(exit_code)
