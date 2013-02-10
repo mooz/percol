@@ -55,7 +55,8 @@ class TerminateLoop(Exception):
 
 class Percol(object):
     def __init__(self, descriptors = None, encoding = "utf-8",
-                 finder = None, candidates = None, actions = None,
+                 finder = None, action_finder = None,
+                 candidates = None, actions = None,
                  query = None, caret = None, index = None):
         # initialization
         self.global_lock = threading.Lock()
@@ -72,6 +73,8 @@ class Percol(object):
 
         if finder is None:
             finder = FinderMultiQueryString
+        if action_finder is None:
+            action_finder = FinderMultiQueryString
 
         self.actions = actions
 
@@ -86,7 +89,7 @@ class Percol(object):
                                              query = query, caret = caret, index = index)
         self.model_action = SelectorModel(percol = self,
                                           collection = [action.desc for action in actions],
-                                          finder = finder)
+                                          finder = action_finder)
         self.model = self.model_candidate
 
     def __enter__(self):

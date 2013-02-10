@@ -180,15 +180,18 @@ Maybe all descriptors are redirecred.""")
         else:
             acts = (actions.output_to_stdout, actions.output_to_stdout_double_quote)
 
-        # arrange finder
-        finder = finder = decide_match_method(options)
-        finder.lazy_finding = not options.eager
-        finder.case_insensitive = not options.case_sensitive
+        # arrange finder class
+        candidate_finder_class = action_finder_class = decide_match_method(options)
+
+        def set_finder_attribute_from_option(finder_instance):
+            finder_instance.lazy_finding = not options.eager
+            finder_instance.case_insensitive = not options.case_sensitive
 
         with Percol(descriptors = tty.reconnect_descriptors(tty_f),
                     candidates = candidates,
                     actions = acts,
-                    finder = finder,
+                    finder = candidate_finder_class,
+                    action_finder = action_finder_class,
                     query = options.query,
                     caret = options.caret,
                     index = options.index,
@@ -196,6 +199,8 @@ Maybe all descriptors are redirecred.""")
             load_rc(percol, options.rcfile, input_encoding)
             if options.string_to_eval is not None:
                 eval_string(percol, options.string_to_eval, locale.getpreferredencoding())
+            set_finder_attribute_from_option(percol.model_candidate.finder)
+            set_finder_attribute_from_option(percol.model_action.finder)
             exit_code = percol.loop()
 
         exit(exit_code)
