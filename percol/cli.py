@@ -200,14 +200,18 @@ Maybe all descriptors are redirecred.""")
                     caret = options.caret,
                     index = options.index,
                     encoding = output_encoding) as percol:
+            # load run-command file
             load_rc(percol, options.rcfile, input_encoding)
+            # evalutate strings specified by the option argument
             if options.string_to_eval is not None:
                 eval_string(percol, options.string_to_eval, locale.getpreferredencoding())
+            # finder settings from option values
             set_finder_attribute_from_option(percol.model_candidate.finder)
             set_finder_attribute_from_option(percol.model_action.finder)
             # view settings from option values
             percol.view.prompt_on_top = not options.prompt_bottom
             percol.view.results_top_down = not options.results_bottom_up
+            # enter main loop
             exit_code = percol.loop()
 
         exit(exit_code)
