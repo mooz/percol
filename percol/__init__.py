@@ -77,7 +77,7 @@ class Percol(object):
 
         # wraps candidates (iterator)
         from lazyarray import LazyArray
-        re_iterable_candidates = LazyArray(candidates)
+        re_iterable_candidates = LazyArray(candidates or [])
 
         # create model
         self.model_candidate = SelectorModel(percol = self,
