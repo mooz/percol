@@ -64,15 +64,13 @@ class SelectorModel(object):
         self.caret = caret
 
     def setup_index(self, index):
+        self.index = 0
         if index is None or index == "first":
             self.select_top()
         elif index == "last":
             self.select_bottom()
         else:
-            try:
-                self.select_index(int(index))
-            except:
-                self.select_top()
+            self.select_index(int(index))
 
     # ============================================================ #
     # Result handling
@@ -120,16 +118,15 @@ class SelectorModel(object):
     # ------------------------------------------------------------ #
 
     def select_index(self, idx):
+        try:
+            # For lazy results, correct "results_count" by getting
+            # items (if available)
+            self.results[idx]
+            self.index = idx
+        except:
+            pass
         if self.results_count > 0:
-            try:
-                # For lazy results, correct "results_count" by getting
-                # items (if available)
-                self.results[idx]
-            except:
-                pass
             self.index = idx % self.results_count
-        else:
-            self.index = 0
 
     def select_top(self):
         self.select_index(0)
