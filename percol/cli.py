@@ -23,12 +23,6 @@ import locale
 
 from optparse import OptionParser
 
-# add load path
-if __name__ == '__main__':
-    libdir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-    if os.path.exists(os.path.join(libdir, "percol")):
-        sys.path.insert(0, libdir)
-
 import percol
 from percol import Percol
 from percol import tty
