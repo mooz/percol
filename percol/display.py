@@ -143,13 +143,21 @@ class Display(object):
     def update_screen_size(self):
         self.HEIGHT, self.WIDTH = self.screen.getmaxyx()
 
-    # @property
-    # def WIDTH(self):
-    #     return self.screen.getmaxyx()[1]
+    @property
+    def Y_BEGIN(self):
+        return 0
 
-    # @property
-    # def HEIGHT(self):
-    #     return self.screen.getmaxyx()[0]
+    @property
+    def Y_END(self):
+        return self.HEIGHT - 1
+
+    @property
+    def X_BEGIN(self):
+        return 0
+
+    @property
+    def X_END(self):
+        return self.WIDTH - 1
 
     # ============================================================ #
     # Color Pairs

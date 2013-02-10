@@ -39,7 +39,7 @@ class SelectorView(object):
 
     @property
     def RESULTS_DISPLAY_MAX(self):
-        return self.display.HEIGHT - 1
+        return self.display.Y_END - self.display.Y_BEGIN
 
     @property
     def model(self):
@@ -101,19 +101,36 @@ class SelectorView(object):
                     debug.log("addnstr", str(e) + " ({0})".format(y))
 
     def display_results(self):
-        voffset = self.RESULT_OFFSET_V
+        result_vertical_pos = self.RESULTS_OFFSET_V
+        result_pos_direction = 1 if self.results_top_down else -1
 
-        abs_head = self.absolute_page_head
-        abs_tail = self.absolute_page_tail
+        results_in_page = islice(enumerate(self.model.results), self.absolute_page_head, self.absolute_page_tail)
 
-        for pos, result in islice(enumerate(self.model.results), abs_head, abs_tail):
-            rel_pos = pos - abs_head
+        for cand_nth, result in results_in_page:
             try:
-                self.display_result(rel_pos + voffset, result,
-                                    is_current = pos == self.model.index,
-                                    is_marked = self.model.get_is_marked(pos))
+                self.display_result(result_vertical_pos, result,
+                                    is_current = cand_nth == self.model.index,
+                                    is_marked = self.model.get_is_marked(cand_nth))
             except curses.error as e:
                 debug.log("display_results", str(e))
+            result_vertical_pos += result_pos_direction
+
+    results_top_down = True
+
+    @property
+    def RESULTS_OFFSET_V(self):
+        if self.results_top_down:
+            # top -> bottom
+            if self.prompt_on_top:
+                return self.display.Y_BEGIN + 1
+            else:
+                return self.display.Y_BEGIN
+        else:
+            # bottom -> top
+            if self.prompt_on_top:
+                return self.display.Y_END
+            else:
+                return self.display.Y_END - 1
 
     # ============================================================ #
     # Prompt
@@ -122,18 +139,11 @@ class SelectorView(object):
     prompt_on_top = True
 
     @property
-    def RESULT_OFFSET_V(self):
-        if self.prompt_on_top:
-            return self.PROMPT_OFFSET_V + 1
-        else:
-            return 0
-
-    @property
     def PROMPT_OFFSET_V(self):
         if self.prompt_on_top:
-            return 0
+            return self.display.Y_BEGIN
         else:
-            return self.display.HEIGHT - 1
+            return self.display.Y_END
 
     PROMPT  = u"QUERY> %q"
     RPROMPT = u"(%i/%I) [%n/%N]"

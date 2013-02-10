@@ -96,6 +96,10 @@ def setup_options(parser):
                       help = "whether distinguish the case of query or not")
     parser.add_option("--reverse", dest = "reverse", default = False, action="store_true",
                       help = "whether reverse the order of candidates or not")
+    parser.add_option("--prompt-bottom", dest = "prompt_bottom", default = False, action="store_true",
+                      help = "display prompt bottom of the screen")
+    parser.add_option("--result-bottom-up", dest = "results_bottom_up", default = False, action="store_true",
+                      help = "display results bottom up instead of top down")
     parser.add_option("--quote", dest = "quote", default = False, action="store_true",
                       help = "whether quote the output line")
     parser.add_option("--peep", action = "store_true", dest = "peep", default = False,
@@ -201,6 +205,9 @@ Maybe all descriptors are redirecred.""")
                 eval_string(percol, options.string_to_eval, locale.getpreferredencoding())
             set_finder_attribute_from_option(percol.model_candidate.finder)
             set_finder_attribute_from_option(percol.model_action.finder)
+            # view settings from option values
+            percol.view.prompt_on_top = not options.prompt_bottom
+            percol.view.results_top_down = not options.results_bottom_up
             exit_code = percol.loop()
 
         exit(exit_code)

@@ -29,23 +29,59 @@ class SelectorCommand(object):
     # Selection
     # ------------------------------------------------------------ #
 
-    def select_next(self):
+    # Line
+
+    def select_successor(self):
         self.model.select_index(self.model.index + 1)
 
-    def select_previous(self):
+    def select_predecessor(self):
         self.model.select_index(self.model.index - 1)
 
+    def select_next(self):
+        if self.view.results_top_down:
+            self.select_successor()
+        else:
+            self.select_predecessor()
+
+    def select_previous(self):
+        if self.view.results_top_down:
+            self.select_predecessor()
+        else:
+            self.select_successor()
+
+    # Top / Bottom
+
     def select_top(self):
-        self.model.select_top()
+        if self.view.results_top_down:
+            self.model.select_top()
+        else:
+            self.model.select_bottom()
 
     def select_bottom(self):
-        self.model.select_bottom()
+        if self.view.results_top_down:
+            self.model.select_bottom()
+        else:
+            self.model.select_top()
 
-    def select_next_page(self):
+    # Page
+
+    def select_successor_page(self):
         self.model.select_index(self.model.index + self.view.RESULTS_DISPLAY_MAX)
 
-    def select_previous_page(self):
+    def select_predecessor_page(self):
         self.model.select_index(self.model.index - self.view.RESULTS_DISPLAY_MAX)
+
+    def select_next_page(self):
+        if self.view.results_top_down:
+            self.select_successor_page()
+        else:
+            self.select_predecessor_page()
+
+    def select_previous_page(self):
+        if self.view.results_top_down:
+            self.select_predecessor_page()
+        else:
+            self.select_successor_page()
 
     # ------------------------------------------------------------ #
     # Mark
@@ -56,7 +92,7 @@ class SelectorCommand(object):
 
     def toggle_mark_and_next(self):
         self.toggle_mark()
-        self.select_next()
+        self.select_successor()
 
     def __get_all_mark_indices(self):
         return xrange(self.model.results_count)
