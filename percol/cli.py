@@ -90,6 +90,8 @@ def setup_options(parser):
                       help = "whether distinguish the case of query or not")
     parser.add_option("--reverse", dest = "reverse", default = False, action="store_true",
                       help = "whether reverse the order of candidates or not")
+    parser.add_option("--auto-match", dest = "auto_match", default = False, action="store_true",
+                      help = "auto matching if only one candidate")
 
     parser.add_option("--prompt-top", dest = "prompt_on_top", default = None, action="store_true",
                       help = "display prompt top of the screen (default)")
@@ -217,6 +219,9 @@ Maybe all descriptors are redirecred.""")
             set_if_not_none(options, percol.view, 'prompt_on_top')
             set_if_not_none(options, percol.view, 'results_top_down')
             # enter main loop
-            exit_code = percol.loop()
+            if options.auto_match and percol.has_only_one_candidate:
+                exit_code = percol.finish_with_exit_code()
+            else:
+                exit_code = percol.loop()
 
         exit(exit_code)

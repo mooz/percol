@@ -82,6 +82,8 @@ class Percol(object):
         from lazyarray import LazyArray
         re_iterable_candidates = LazyArray(candidates or [])
 
+        self.has_only_one_candidate = re_iterable_candidates.has_only_one_candidate()
+
         # create model
         self.model_candidate = SelectorModel(percol = self,
                                              collection = re_iterable_candidates,
@@ -124,6 +126,11 @@ class Percol(object):
         self.execute_action()
 
     args_for_action = None
+
+    def finish_with_exit_code(self):
+        self.args_for_action = self.model_candidate.get_selected_results_with_index()
+        return 0
+
     def execute_action(self):
         selected_actions = self.model_action.get_selected_results_with_index()
 
