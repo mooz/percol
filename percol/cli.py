@@ -90,6 +90,8 @@ def setup_options(parser):
                       help = "whether distinguish the case of query or not")
     parser.add_option("--reverse", dest = "reverse", default = False, action="store_true",
                       help = "whether reverse the order of candidates or not")
+    parser.add_option("--auto-fail", dest = "auto_fail", default = False, action="store_true",
+                      help = "auto fail if no candidates")
     parser.add_option("--auto-match", dest = "auto_match", default = False, action="store_true",
                       help = "auto matching if only one candidate")
 
@@ -219,7 +221,9 @@ Maybe all descriptors are redirecred.""")
             set_if_not_none(options, percol.view, 'prompt_on_top')
             set_if_not_none(options, percol.view, 'results_top_down')
             # enter main loop
-            if options.auto_match and percol.has_only_one_candidate:
+            if options.auto_fail and percol.one_or_zero_candidate == 0:
+                exit_code = percol.cancel_with_exit_code()
+            elif options.auto_match and percol.one_or_zero_candidate == 1:
                 exit_code = percol.finish_with_exit_code()
             else:
                 exit_code = percol.loop()

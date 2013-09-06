@@ -63,18 +63,17 @@ class LazyArray(object):
         for elem in self:
             pass
 
-    def has_only_one_candidate(self):
-        has = False
+    def one_or_zero_candidate(self):
         try:
             self[1]
         except IndexError:
             try:
                 self[0]
             except IndexError:
-                pass
+                return 0
             else:
-                has = True
-        return has
+                return 1
+        return -1
 
 if __name__ == "__main__":
     def getnumbers(n):
