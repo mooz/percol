@@ -18,6 +18,7 @@
 #
 
 import curses, array, debug
+import platform
 
 SPECIAL_KEYS = {
     curses.KEY_A1        : "<a1>",
@@ -177,6 +178,11 @@ SPECIAL_KEYS = {
     curses.KEY_UNDO      : "<undo>",
     curses.KEY_UP        : "<up>",
 }
+
+if platform.system() == "Windows":
+    SPECIAL_KEYS[8] = "<backspace>"
+else:
+    SPECIAL_KEYS[127] = "<backspace>"
 
 # Other
 KEY_ESCAPE = 27
