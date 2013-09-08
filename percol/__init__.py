@@ -80,19 +80,23 @@ class Percol(object):
 
         # wraps candidates (iterator)
         from lazyarray import LazyArray
-        re_iterable_candidates = LazyArray(candidates or [])
-
-        self.one_or_zero_candidate = re_iterable_candidates.one_or_zero_candidate()
+        self.candidates = LazyArray(candidates or [])
 
         # create model
         self.model_candidate = SelectorModel(percol = self,
-                                             collection = re_iterable_candidates,
+                                             collection = self.candidates,
                                              finder = finder,
                                              query = query, caret = caret, index = index)
         self.model_action = SelectorModel(percol = self,
                                           collection = [action.desc for action in actions],
                                           finder = action_finder)
         self.model = self.model_candidate
+
+    def has_no_candidate(self):
+        return not self.candidates.has_nth_value(0)
+
+    def has_only_one_candidate(self):
+        return self.candidates.has_nth_value(0) and not self.candidates.has_nth_value(1)
 
     def __enter__(self):
         # init curses and it's wrapper

@@ -63,17 +63,12 @@ class LazyArray(object):
         for elem in self:
             pass
 
-    def one_or_zero_candidate(self):
+    def has_nth_value(self, nth):
         try:
-            self[1]
+            self[nth]
+            return True
         except IndexError:
-            try:
-                self[0]
-            except IndexError:
-                return 0
-            else:
-                return 1
-        return -1
+            return False
 
 if __name__ == "__main__":
     def getnumbers(n):

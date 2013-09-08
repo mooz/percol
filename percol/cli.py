@@ -221,9 +221,9 @@ Maybe all descriptors are redirecred.""")
             set_if_not_none(options, percol.view, 'prompt_on_top')
             set_if_not_none(options, percol.view, 'results_top_down')
             # enter main loop
-            if options.auto_fail and percol.one_or_zero_candidate == 0:
+            if options.auto_fail and percol.has_no_candidate():
                 exit_code = percol.cancel_with_exit_code()
-            elif options.auto_match and percol.one_or_zero_candidate == 1:
+            elif options.auto_match and percol.has_only_one_candidate():
                 exit_code = percol.finish_with_exit_code()
             else:
                 exit_code = percol.loop()
