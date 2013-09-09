@@ -80,6 +80,10 @@ def setup_options(parser):
                       help = "suppress lazy matching (slower, but display correct candidates count)")
     parser.add_option("--eval", dest = "string_to_eval",
                       help = "eval given string after loading the rc file")
+    parser.add_option("--prompt", dest = "prompt", default = None,
+                      help = "specify prompt (percol.view.PROMPT)")
+    parser.add_option("--right-prompt", dest = "right_prompt", default = None,
+                      help = "specify right prompt (percol.view.RPROMPT)")
     parser.add_option("--match-method", dest = "match_method", default = "",
                       help = "specify matching method for query. `string` (default) and `regex` are currently supported")
     parser.add_option("--caret-position", dest = "caret",
@@ -211,6 +215,11 @@ Maybe all descriptors are redirecred.""")
                     encoding = output_encoding) as percol:
             # load run-command file
             load_rc(percol, options.rcfile, input_encoding)
+            # override prompts
+            if options.prompt is not None:
+                percol.view.__class__.PROMPT = property(lambda self: options.prompt)
+            if options.right_prompt is not None:
+                percol.view.__class__.RPROMPT = property(lambda self: options.right_prompt)
             # evalutate strings specified by the option argument
             if options.string_to_eval is not None:
                 eval_string(percol, options.string_to_eval, locale.getpreferredencoding())
