@@ -158,8 +158,9 @@ class SelectorView(object):
         self.last_query_position = -1
 
         for s, attrs in parsed:
-            tokens.append((self.format_prompt_string(s, offset), attrs))
-            offset += display.screen_len(s)
+            formatted_string = self.format_prompt_string(s, offset)
+            tokens.append((formatted_string, attrs))
+            offset += display.screen_len(formatted_string)
 
         y, x = self.display.add_aligned_string_tokens(tokens,
                                                       y_offset = y_offset,
