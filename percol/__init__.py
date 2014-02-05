@@ -269,7 +269,7 @@ class Percol(object):
 
     def handle_normal_key(self, ch):
         k = self.keyhandler.get_key_for(ch)
-        if self.keymap.has_key(k):
+        if k in self.keymap:
             self.keymap[k](self)
         elif self.keyhandler.is_displayable_key(ch):
             self.model.insert_char(ch)

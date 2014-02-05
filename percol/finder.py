@@ -66,12 +66,12 @@ class CachedFinder(Finder):
         """
         for i in xrange(len(query) - 1, 0, -1):
             query_prefix = query[0:i]
-            if self.results_cache.has_key(query_prefix):
+            if query_prefix in self.results_cache:
                 return (line for (line, res, idx) in self.results_cache[query_prefix])
         return None
 
     def get_results(self, query):
-        if self.results_cache.has_key(query):
+        if query in self.results_cache:
             return self.results_cache[query]
         collection = self.get_collection_from_trie(query) or self.collection
         return Finder.get_results(self, query, collection)

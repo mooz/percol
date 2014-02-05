@@ -193,7 +193,7 @@ class KeyHandler(object):
 
         if self.is_displayable_key(ch):
             k = self.displayable_key_to_str(ch)
-        elif SPECIAL_KEYS.has_key(ch):
+        elif ch in SPECIAL_KEYS:
             k = SPECIAL_KEYS[ch]
         elif self.is_ctrl_masked_key(ch):
             k = self.ctrl_masked_key_to_str(ch)
