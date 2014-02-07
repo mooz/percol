@@ -16,8 +16,8 @@
 #
 #  * percol_select_history
 #  * percol_cd_sibling
+#  * percol_cd_bookmark
 #  * percol_insert_bookmark
-#  * percol_cd_history
 #  * percol_insert_ls
 #  * percol_cd_repository
 #
@@ -178,12 +178,12 @@ function percol_insert_bookmark() {
 }
 zle -N percol_insert_bookmark
 
-function percol_cd_history() {
+function percol_cd_bookmark() {
     local destination=$(_percol_get_destination_from_history)
     [ -n $destination ] && cd ${destination/#\~/${HOME}}
     _percol_clean_prompt
 }
-zle -N percol_cd_history
+zle -N percol_cd_bookmark
 
 function percol_insert_ls() {
     local basedir
