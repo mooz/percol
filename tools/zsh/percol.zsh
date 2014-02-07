@@ -18,9 +18,9 @@
 #  * percol_cd_sibling
 #  * percol_cd_upper_dirs
 #  * percol_cd_bookmark
+#  * percol_cd_repository
 #  * percol_insert_bookmark
 #  * percol_insert_ls
-#  * percol_cd_repository
 #
 # And this script also provides following commands.
 #
