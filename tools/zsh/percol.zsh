@@ -158,12 +158,10 @@ function percol_select_history() {
 zle -N percol_select_history
 
 function percol_cd_sibling() {
-    destination="../$(_percol_list_siblings | percol)"
-
+    destination=$(_percol_popup "_percol_list_siblings")
     if [[ $destination != "" ]]; then
         cd $destination
     fi
-
     _percol_clean_prompt
 }
 zle -N percol_cd_sibling
