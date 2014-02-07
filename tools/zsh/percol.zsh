@@ -16,6 +16,7 @@
 #
 #  * percol_select_history
 #  * percol_cd_sibling
+#  * percol_cd_upper_dirs
 #  * percol_cd_bookmark
 #  * percol_insert_bookmark
 #  * percol_insert_ls
@@ -166,6 +167,15 @@ function percol_cd_sibling() {
     _percol_clean_prompt
 }
 zle -N percol_cd_sibling
+
+function percol_cd_upper_dirs() {
+    destination=$(_percol_popup "_percol_list_upper_directories")
+    if [[ $destination != "" ]]; then
+        cd $destination
+    fi
+    _percol_clean_prompt
+}
+zle -N percol_cd_upper_dirs
 
 function percol_insert_bookmark() {
     local destination=$(_percol_get_destination_from_history)
