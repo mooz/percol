@@ -131,7 +131,7 @@ function _percol_go_to_repository_top() {
 function _percol_get_repository_dir() {
     _percol_go_to_repository_top > /dev/null;
     destination=$(_percol_popup 'find . -path "*/.git" -prune -o -type d')
-    if [ -n $destination ]; then
+    if [[ $destination != "" ]]; then
         r > /dev/null
         cd $destination > /dev/null
         echo $PWD
@@ -209,7 +209,7 @@ zle -N percol_insert_ls
 function percol_cd_repository() {
     local destination
     destination=$(_percol_get_repository_dir)
-    [ -n $destination ] && cd ${destination}
+    [[ $destination != "" ]] && cd ${destination}
     _percol_clean_prompt
 }
 zle -N percol_cd_repository
