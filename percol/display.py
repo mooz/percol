@@ -116,7 +116,7 @@ class Display(object):
     def __init__(self, screen, encoding):
         self.screen   = screen
         self.encoding = encoding
-        self.parser   = markup.MarkupParser()
+        self.markup_parser   = markup.MarkupParser()
 
         curses.start_color()
 
@@ -219,7 +219,7 @@ class Display(object):
         return flag
 
     def add_aligned_string_markup(self, markup, **keywords):
-        return self.add_aligned_string_tokens(self.parser.parse(markup), **keywords)
+        return self.add_aligned_string_tokens(self.markup_parser.parse(markup), **keywords)
 
     def add_aligned_string_tokens(self, tokens,
                                   y_align = "top", x_align = "left",
