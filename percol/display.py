@@ -22,7 +22,7 @@ import types
 import curses
 import re
 
-import markup, debug
+from percol import markup, debug
 
 FG_COLORS = {
     "black"   : curses.COLOR_BLACK,
