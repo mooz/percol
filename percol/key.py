@@ -17,7 +17,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-import curses, array, debug
+import curses, array
 
 SPECIAL_KEYS = {
     curses.KEY_A1        : "<a1>",

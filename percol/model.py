@@ -18,8 +18,7 @@
 #
 
 import types
-import display
-import debug
+from percol import display, debug
 
 class SelectorModel(object):
     def __init__(self,
