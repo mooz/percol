@@ -19,7 +19,7 @@
 
 import sys
 
-from action import action
+from percol.action import action
 
 def double_quote_string(string):
     return '"' + string.replace('"', r'\"') + '"'
