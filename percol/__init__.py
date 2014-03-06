@@ -37,14 +37,14 @@ import signal
 import curses
 import threading
 
-import debug, action
+from percol import debug, action
 
-from display import Display
-from finder  import FinderMultiQueryString
-from key     import KeyHandler
-from model   import SelectorModel
-from view    import SelectorView
-from command import SelectorCommand
+from percol.display import Display
+from percol.finder  import FinderMultiQueryString
+from percol.key     import KeyHandler
+from percol.model   import SelectorModel
+from percol.view    import SelectorView
+from percol.command import SelectorCommand
 
 class TerminateLoop(Exception):
     def __init__(self, value):

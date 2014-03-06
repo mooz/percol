@@ -18,7 +18,7 @@
 #
 
 from abc import ABCMeta, abstractmethod
-from lazyarray import LazyArray
+from percol.lazyarray import LazyArray
 
 # ============================================================ #
 # Finder
