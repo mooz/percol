@@ -151,7 +151,7 @@ class SelectorView(object):
     def do_display_prompt(self, format,
                           y_offset = 0, x_offset = 0,
                           y_align = "top", x_align = "left"):
-        parsed = self.display.parser.parse(format)
+        parsed = self.display.markup_parser.parse(format)
         offset = 0
         tokens = []
 
