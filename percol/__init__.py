@@ -79,7 +79,7 @@ class Percol(object):
         self.actions = actions
 
         # wraps candidates (iterator)
-        from lazyarray import LazyArray
+        from percol.lazyarray import LazyArray
         self.candidates = LazyArray(candidates or [])
 
         # create model
