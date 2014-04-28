@@ -62,7 +62,7 @@ Specifying a filename.
 
     $ percol /var/log/syslog
 
-Specifying a redirecition.
+Specifying a redirection.
 
     $ ps aux | percol
 
