@@ -149,6 +149,7 @@ percol.import_keymap({
     "C-d" : lambda percol: percol.command.delete_forward_char(),
     "C-k" : lambda percol: percol.command.kill_end_of_line(),
     "C-y" : lambda percol: percol.command.yank(),
+    "C-t" : lambda percol: percol.command.transpose_chars(),
     "C-a" : lambda percol: percol.command.beginning_of_line(),
     "C-e" : lambda percol: percol.command.end_of_line(),
     "C-b" : lambda percol: percol.command.backward_char(),

@@ -155,6 +155,24 @@ class SelectorCommand(object):
         self.model.query = u""
         self.model.set_caret(0)
 
+    def transpose_chars(self):
+        caret = self.model.caret
+        qlen = len(self.model.query)
+        if qlen <= 1:
+            self.end_of_line()
+        elif caret == 0:
+            self.forward_char()
+            self.transpose_chars()
+        elif caret == qlen:
+            self.backward_char()
+            self.transpose_chars()
+        else:
+            self.model.query = self.model.query[:caret - 1] + \
+                               self.model.query[caret] + \
+                               self.model.query[caret - 1] + \
+                               self.model.query[caret + 1:]
+            self.forward_char()
+
     # ------------------------------------------------------------ #
     # Text > kill
     # ------------------------------------------------------------ #
