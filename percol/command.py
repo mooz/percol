@@ -125,6 +125,16 @@ class SelectorCommand(object):
     def forward_char(self):
         self.model.set_caret(self.model.caret + 1)
 
+    def _get_backward_word_begin(self):
+        from re import match
+        skippable_substring = match(r'\s*\S*', self.model.query[:self.model.caret][::-1])
+        return self.model.caret - skippable_substring.end()
+
+    def _get_forward_word_end(self):
+        from re import match
+        skippable_substring = match(r'\s*\S*', self.model.query[self.model.caret:])
+        return self.model.caret + skippable_substring.end()
+
     # ------------------------------------------------------------ #
     # Text
     # ------------------------------------------------------------ #
