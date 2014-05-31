@@ -150,19 +150,21 @@ class SelectorCommand(object):
             self.backward_char()
             self.delete_forward_char()
 
-    def delete_backward_word(self):
-        from re import search
-        caret = self.model.caret
-        if caret > 0:
-            q = self.model.query
-            qc = q[:caret]
-            m = search(r'\S+', qc[::-1])
-            self.model.query = qc[:-m.end()] + q[caret:]
-            self.model.set_caret(caret - m.end())
-
     def delete_forward_char(self):
         caret = self.model.caret
         self.model.query = self.model.query[:caret] + self.model.query[caret + 1:]
+
+    def delete_backward_word(self):
+        backword_word_begin = self._get_backward_word_begin()
+        backword_word_end = self.model.caret
+        self.model.query = self.model.query[:backword_word_begin] + self.model.query[backword_word_end:]
+        self.model.set_caret(backword_word_begin)
+
+    def delete_forward_word(self):
+        forward_word_begin = self.model.caret
+        forward_word_end = self._get_forward_word_end()
+        self.model.query = self.model.query[:forward_word_begin] + self.model.query[forward_word_end:]
+        self.model.set_caret(forward_word_begin)
 
     def delete_end_of_line(self):
         self.model.query = self.model.query[:self.model.caret]
