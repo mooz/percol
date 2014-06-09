@@ -145,7 +145,8 @@ def decide_match_method(options):
         return FinderMultiQueryString
 
 def main():
-    parser = OptionParser(usage = "Usage: %prog [options] [FILE]")
+    from percol import __version__
+    parser = OptionParser(usage = "Usage: %prog [options] [FILE]", version = "%prog {0}".format(__version__))
     setup_options(parser)
     options, args = parser.parse_args()
 
