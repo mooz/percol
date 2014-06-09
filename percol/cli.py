@@ -45,16 +45,23 @@ You did not give any inputs to <underline>percol</underline>. Check following ty
 """).format(logo = percol.__logo__,
             version = percol.__version__)
 
+class LoadRunCommandFileError(Exception):
+    def __init__(self, error):
+        self.error = error
+
+    def __str__(self):
+        return "Error in rc.py: " + str(self.error)
+
 def load_rc(percol, path = None, encoding = 'utf-8'):
     if path is None:
         path = os.path.expanduser("~/.percol.d/rc.py")
     if not os.path.exists(path):
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'rc.py')
     try:
-        with open(path, 'r') as rc:
-            exec(rc.read().decode(encoding), locals())
+        with open(path, 'rb') as file:
+            exec(compile(file.read(), path, 'exec'), locals())
     except Exception as e:
-        debug.log("Exception in rc file {0}".format(path), e)
+        raise LoadRunCommandFileError(e)
 
 def eval_string(percol, string_to_eval, encoding = 'utf-8'):
     try:
@@ -215,7 +222,7 @@ Maybe all descriptors are redirecred.""")
                     index = options.index,
                     encoding = output_encoding) as percol:
             # load run-command file
-            load_rc(percol, options.rcfile, input_encoding)
+            load_rc(percol, options.rcfile)
             # override prompts
             if options.prompt is not None:
                 percol.view.__class__.PROMPT = property(lambda self: options.prompt)
