@@ -7,7 +7,7 @@
      / .___/\___/_/   \___/\____/_/
     /_/
 
-percol adds flavor of interactive selection to the traditional pipe concept on UNIX
+percol adds flavor of interactive selection to the traditional pipe concept on UNIX.
 
 - [What's this](#whats-this)
   - [Features](#features)
@@ -39,6 +39,8 @@ percol adds flavor of interactive selection to the traditional pipe concept on U
 
 ## What's this
 
+![optimized](http://mooz.github.io/percol/percol_overview.gif)
+
 percol is an **interactive grep tool** in your terminal. percol
 
 1. receives input lines from `stdin` or a file,
@@ -52,8 +54,10 @@ it can be used in command-chains with `|` in your shell (**UNIX philosophy!**).
 ### Features
 
 - **Efficient**: With **lazy loads** of input lines and **query caching**, percol handles huge inputs efficiently.
-- **Customizable**: Through configuration file (`rc.py`), percol's behavior including prompts, keymaps, and color schemes can be heavily customizable.
-- **Migemo support**: By supporting [C/Migemo](http://code.google.com/p/cmigemo/), percol filters Japanese inputs blazingly fast.
+- **Customizable**: Through configuration file (`rc.py`), percol's behavior including prompts, keymaps, and color schemes can be **heavily customizable**.
+  - See [configuration](https://github.com/mooz/percol#configuration) for details.
+- **Migemo support**: By supporting [C/Migemo](http://code.google.com/p/cmigemo/), **percol filters Japanese inputs blazingly fast**.
+  - See [matching method](https://github.com/mooz/percol#matching-method) for details.
 
 ### Related projects
 
@@ -174,8 +178,6 @@ Configuration file for percol should be placed under `${HOME}/.percol.d/` and na
 Here is an example `~/.percol.d/rc.py`.
 
 ```python
-# -*- encoding: utf-8 -*-
-
 # X / _ / X
 percol.view.PROMPT  = ur"<bold><yellow>X / _ / X</yellow></bold> %q"
 
