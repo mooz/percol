@@ -9,6 +9,9 @@
 
 percol adds flavor of interactive selection to the traditional pipe concept on UNIX
 
+- [What's this](#whats-this)
+  - [Features](#features)
+  - [Related projects](#related-projects)
 - [Installation](#installation)
   - [PyPI](#pypi)
   - [Manual](#manual)
@@ -34,7 +37,38 @@ percol adds flavor of interactive selection to the traditional pipe concept on U
     - [Selecting multiple candidates](#selecting-multiple-candidates)
     - [Z Shell support](#z-shell-support)
 
+## What's this
+
+percol is an **interactive grep tool** in your terminal. percol
+
+1. receives input lines from ~stdin~ or a file,
+2. lists up the input lines,
+3. waits for your input that filter/select the line(s),
+4. and finally outputs the selected line(s) to ~stdout~.
+
+Since percol just filters the input and output the result to stdout,
+it can be used in command-chains with ~|~ in your shell (**UNIX philosophy!**).
+
+### Features
+
+- **Efficient**: With **lazy loads** of input lines and **query caching**, percol handles huge inputs efficiently.
+- **Customizable**: Through configuration file (~rc.py~), percol's behavior including prompts, keymaps, and color schemes can be heavily customizable.
+- **Migemo support**: By supporting [C/Migemo](http://code.google.com/p/cmigemo/), percol filters Japanese inputs blazingly fast.
+
+### Related projects
+
+[canything by @keiji0](https://github.com/keiji0/canything)
+: A seminal work in interactive grep tools.
+[zaw by @nakamuray](https://github.com/zsh-users/zaw)
+: A zsh-friendly interactive grep tool.
+[peko by @lestrrat](https://github.com/lestrrat/peco)
+: An interactive grep tool written in Go language.
+[fzf by @junegunn](https://github.com/junegunn/fzf)
+: An interactive grep tool written in Ruby.
+
 ## Installation
+
+percol currently supports only Python 2.x.
 
 ### PyPI
 
