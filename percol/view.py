@@ -215,7 +215,7 @@ class SelectorView(object):
     def format_prompt_string(self, s, offset = 0):
         def formatter(matchobj):
             al = matchobj.group(1)
-            if self.prompt_replacees.has_key(al):
+            if al in self.prompt_replacees:
                 res = self.prompt_replacees[al](self, matchobj = matchobj, offset = offset)
                 return (res if isinstance(res, six.text_type)
                         else unicode(str(res), self.percol.encoding, 'replace'))
