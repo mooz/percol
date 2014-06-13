@@ -17,7 +17,7 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-import types
+import six
 from percol import display, debug
 
 class SelectorModel(object):
@@ -53,7 +53,7 @@ class SelectorModel(object):
         self.marks   = {}
 
     def setup_caret(self, caret):
-        if isinstance(caret, types.StringType) or isinstance(caret, types.UnicodeType):
+        if isinstance(caret, six.string_types):
             try:
                 caret = int(caret)
             except ValueError:
