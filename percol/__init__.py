@@ -36,6 +36,7 @@ import sys
 import signal
 import curses
 import threading
+import six
 
 from percol import debug, action
 
@@ -243,7 +244,7 @@ class Percol(object):
             self.keymap = {}
         else:
             self.keymap = dict(self.keymap)
-        for key, cmd in keymap.iteritems():
+        for key, cmd in six.iteritems(keymap):
             self.keymap[key] = cmd
 
     # default
