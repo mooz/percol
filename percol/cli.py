@@ -20,6 +20,7 @@
 import sys
 import os
 import locale
+import six
 
 from optparse import OptionParser
 
@@ -137,7 +138,7 @@ def read_input(filename, encoding, reverse=False):
     else:
         lines = stream
     for line in lines:
-        yield unicode(line.rstrip("\r\n"), encoding, "replace")
+        yield six.text_type(line.rstrip("\r\n"), encoding, "replace")
     stream.close()
 
 def decide_match_method(options):

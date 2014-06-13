@@ -218,7 +218,7 @@ class SelectorView(object):
             if al in self.prompt_replacees:
                 res = self.prompt_replacees[al](self, matchobj = matchobj, offset = offset)
                 return (res if isinstance(res, six.text_type)
-                        else unicode(str(res), self.percol.encoding, 'replace'))
+                        else six.text_type(res))
             else:
                 return u""
 
