@@ -35,7 +35,7 @@ FG_COLORS = {
     "white"   : curses.COLOR_WHITE,
 }
 
-BG_COLORS = dict(("on_" + name, value) for name, value in FG_COLORS.iteritems())
+BG_COLORS = dict(("on_" + name, value) for name, value in six.iteritems(FG_COLORS))
 
 ATTRS = {
     "altcharset" : curses.A_ALTCHARSET,
@@ -164,8 +164,8 @@ class Display(object):
     # ============================================================ #
 
     def init_color_pairs(self):
-        for fg_s, fg in FG_COLORS.iteritems():
-            for bg_s, bg in BG_COLORS.iteritems():
+        for fg_s, fg in six.iteritems(FG_COLORS):
+            for bg_s, bg in six.iteritems(BG_COLORS):
                 if not (fg == bg == 0):
                     curses.init_pair(self.get_pair_number(fg, bg), fg, bg)
 
