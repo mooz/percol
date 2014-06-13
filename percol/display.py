@@ -19,6 +19,7 @@
 
 import unicodedata
 import types
+import six
 import curses
 import re
 
@@ -86,7 +87,7 @@ def screen_len(s, beg = None, end = None):
         end = len(s[beg:end].expandtabs())
         s = s.expandtabs()
 
-    if s.__class__ != types.UnicodeType:
+    if not isinstance(s, six.text_type):
         return end - beg
 
     dis_len = end - beg
@@ -295,7 +296,7 @@ class Display(object):
         self.screen.refresh()
 
     def get_raw_string(self, s):
-        return s.encode(self.encoding) if s.__class__ == types.UnicodeType else s
+        return s.encode(self.encoding) if isinstance(s, six.text_type) else s
 
     def addnstr(self, y, x, s, n, style):
         if style.__class__ != types.IntType:

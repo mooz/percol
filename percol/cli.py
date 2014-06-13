@@ -65,8 +65,8 @@ def load_rc(percol, path = None, encoding = 'utf-8'):
 
 def eval_string(percol, string_to_eval, encoding = 'utf-8'):
     try:
-        import types
-        if string_to_eval.__class__ != types.UnicodeType:
+        import six
+        if not isinstance(string_to_eval, six.text_type):
             string_to_eval = string_to_eval.decode(encoding)
         exec(string_to_eval, locals())
     except Exception as e:

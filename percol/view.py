@@ -19,7 +19,7 @@
 
 import re
 import curses
-import types
+import six
 import math
 
 from itertools import islice
@@ -217,7 +217,7 @@ class SelectorView(object):
             al = matchobj.group(1)
             if self.prompt_replacees.has_key(al):
                 res = self.prompt_replacees[al](self, matchobj = matchobj, offset = offset)
-                return (res if res.__class__ == types.UnicodeType
+                return (res if isinstance(res, six.text_type)
                         else unicode(str(res), self.percol.encoding, 'replace'))
             else:
                 return u""
