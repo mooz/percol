@@ -177,7 +177,7 @@ Maybe all descriptors are redirecred.""")
     output_encoding = set_proper_locale(options)
     input_encoding = options.input_encoding
 
-    with open(ttyname, "r+w") as tty_f:
+    with open(ttyname, "w") as tty_f:
         if not tty_f.isatty():
             exit_program("Error: {0} is not a tty file".format(ttyname), show_help = False)
 
