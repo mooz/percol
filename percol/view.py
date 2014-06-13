@@ -211,7 +211,7 @@ class SelectorView(object):
         "k" : lambda self, **args: self.percol.last_key
     }
 
-    format_pattern = re.compile(ur'%([a-zA-Z%])')
+    format_pattern = re.compile(u'%([a-zA-Z%])')
     def format_prompt_string(self, s, offset = 0):
         def formatter(matchobj):
             al = matchobj.group(1)
