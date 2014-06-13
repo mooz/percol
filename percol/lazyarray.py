@@ -17,6 +17,8 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
+import six
+
 # ============================================================ #
 # Lazy Array
 # ============================================================ #
@@ -72,7 +74,7 @@ class LazyArray(object):
 
 if __name__ == "__main__":
     def getnumbers(n):
-        for x in xrange(1, n):
+        for x in six.moves.range(1, n):
             print("yield " + str(x))
             yield x
     larray = LazyArray(getnumbers(20))

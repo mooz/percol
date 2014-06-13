@@ -91,7 +91,7 @@ def screen_len(s, beg = None, end = None):
         return end - beg
 
     dis_len = end - beg
-    for i in xrange(beg, end):
+    for i in six.moves.range(beg, end):
         if unicodedata.east_asian_width(s[i]) in ("W", "F"):
             dis_len += 1
 

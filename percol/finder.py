@@ -19,6 +19,7 @@
 
 from abc import ABCMeta, abstractmethod
 from percol.lazyarray import LazyArray
+import six
 
 # ============================================================ #
 # Finder
@@ -64,7 +65,7 @@ class CachedFinder(Finder):
         result as a collection to improve performance (prefix of the
         query constructs a trie)
         """
-        for i in xrange(len(query) - 1, 0, -1):
+        for i in six.moves.range(len(query) - 1, 0, -1):
             query_prefix = query[0:i]
             if query_prefix in self.results_cache:
                 return (line for (line, res, idx) in self.results_cache[query_prefix])
