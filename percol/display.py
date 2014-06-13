@@ -18,7 +18,6 @@
 #
 
 import unicodedata
-import types
 import six
 import curses
 import re
@@ -299,7 +298,7 @@ class Display(object):
         return s.encode(self.encoding) if isinstance(s, six.text_type) else s
 
     def addnstr(self, y, x, s, n, style):
-        if style.__class__ != types.IntType:
+        if not isinstance(style, six.integer_types):
             style = self.attrs_to_style(style)
 
         # Compute bytes count of the substring that fits in the screen
