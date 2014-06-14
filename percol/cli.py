@@ -52,13 +52,22 @@ class LoadRunCommandFileError(Exception):
     def __str__(self):
         return "Error in rc.py: " + str(self.error)
 
+CONF_ROOT_DIR = os.path.expanduser("~/.percol.d/")
+DEFAULT_CONF_PATH = CONF_ROOT_DIR + "rc.py"
+
+def create_default_rc_file():
+    if not os.path.exists(CONF_ROOT_DIR):
+        os.makedirs(CONF_ROOT_DIR)
+    with open(DEFAULT_CONF_PATH, "w+") as file:
+        file.write("# Run command file for percol\n")
+
 def load_rc(percol, path = None, encoding = 'utf-8'):
     if path is None:
-        path = os.path.expanduser("~/.percol.d/rc.py")
-    if not os.path.exists(path):
-        path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'rc.py')
+        if not os.path.exists(DEFAULT_CONF_PATH):
+            create_default_rc_file()
+        path = DEFAULT_CONF_PATH
     try:
-        with open(path, 'rb') as file:
+        with open(path, "rb") as file:
             exec(compile(file.read(), path, 'exec'), locals())
     except Exception as e:
         raise LoadRunCommandFileError(e)
