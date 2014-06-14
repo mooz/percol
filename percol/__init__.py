@@ -20,7 +20,7 @@
 """Adds flavor of interactive filtering to the traditional pipe concept of shell.
 Try
  $ A | percol | B
-and you can display the output of command A and filter it intaractively then pass them to command B.
+and you can display the output of command A and filter it interactively then pass them to command B.
 Interface of percol is highly inspired by anything.el for Emacs."""
 
 __version__ = "0.0.7"
