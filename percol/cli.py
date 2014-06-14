@@ -58,7 +58,9 @@ def load_rc(percol, path = None, encoding = 'utf-8'):
     if not os.path.exists(path):
         path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'rc.py')
     try:
-        with open(path, 'rb') as file:
+        # If file rc not exist then create new.
+        mode = "rb" if os.path.exists(path) else "wb+"
+        with open(path, mode) as file:
             exec(compile(file.read(), path, 'exec'), locals())
     except Exception as e:
         raise LoadRunCommandFileError(e)
