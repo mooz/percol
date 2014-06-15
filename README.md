@@ -65,7 +65,7 @@ it can be used in command-chains with `|` in your shell (**UNIX philosophy!**).
   - A seminal work in interactive grep tools.
 - [zaw by @nakamuray](https://github.com/zsh-users/zaw)
   - A zsh-friendly interactive grep tool.
-- [peko by @lestrrat](https://github.com/lestrrat/peco)
+- [peco by @lestrrat](https://github.com/lestrrat/peco)
   - An interactive grep tool written in Go language.
 - [fzf by @junegunn](https://github.com/junegunn/fzf)
   - An interactive grep tool written in Ruby.
