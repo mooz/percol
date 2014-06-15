@@ -303,6 +303,7 @@ Each RHS is a tuple of style specifiers listed below.
 - `"normal"`     for `curses.A_NORMAL`
 - `"standout"`   for `curses.A_STANDOUT`
 - `"underline"`  for `curses.A_UNDERLINE`
+- `"reverse"`    for `curses.A_REVERSE`
 
 ## Matching Method
 

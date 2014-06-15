@@ -45,6 +45,7 @@ ATTRS = {
     "normal"     : curses.A_NORMAL,
     "standout"   : curses.A_STANDOUT,
     "underline"  : curses.A_UNDERLINE,
+    "reverse"    : curses.A_REVERSE,
 }
 
 COLOR_COUNT = len(FG_COLORS)
