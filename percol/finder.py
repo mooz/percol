@@ -93,6 +93,7 @@ class FinderMultiQuery(CachedFinder):
         new_finder.and_search = self.and_search
         return new_finder
 
+    split_query = True
     case_insensitive = True
 
     dummy_res = [["", [(0, 0)]]]
@@ -103,12 +104,12 @@ class FinderMultiQuery(CachedFinder):
         # Arrange queries
         if self.case_insensitive:
             query = query.lower()
-        # When split_str is None, don't split the query
-        if self.split_str is None:
-            queries = [self.transform_query(query)]
-        else:
+        # Split query when split_query is True
+        if self.split_query:
             queries = [self.transform_query(sub_query)
                        for sub_query in query.split(self.split_str)]
+        else:
+            queries = [self.transform_query(query)]
 
         if collection is None:
             collection = self.collection
