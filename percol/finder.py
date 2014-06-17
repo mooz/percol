@@ -81,7 +81,7 @@ class CachedFinder(Finder):
 # ============================================================ #
 
 class FinderMultiQuery(CachedFinder):
-    def __init__(self, collection, split_str = None):
+    def __init__(self, collection, split_str = " "):
         CachedFinder.__init__(self)
 
         self.collection = collection
