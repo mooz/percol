@@ -81,7 +81,7 @@ class CachedFinder(Finder):
 # ============================================================ #
 
 class FinderMultiQuery(CachedFinder):
-    def __init__(self, collection, split_str = " "):
+    def __init__(self, collection, split_str = None):
         CachedFinder.__init__(self)
 
         self.collection = collection
@@ -103,8 +103,12 @@ class FinderMultiQuery(CachedFinder):
         # Arrange queries
         if self.case_insensitive:
             query = query.lower()
-        queries = [self.transform_query(sub_query)
-                   for sub_query in query.split(self.split_str)]
+        # When split_str is None, don't split the query
+        if self.split_str is None:
+            queries = [self.transform_query(query)]
+        else:
+            queries = [self.transform_query(sub_query)
+                       for sub_query in query.split(self.split_str)]
 
         if collection is None:
             collection = self.collection
