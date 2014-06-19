@@ -57,8 +57,8 @@ fi
 local PERCOL_IN=${PERCOL_TMP_DIR}/percol-channel-in-$$
 local PERCOL_OUT=${PERCOL_TMP_DIR}/percol-channel-out-$$
 function _percol_create_fifo() {
-    [ -p $PERCOL_IN ] || { command rm -f $PERCOL_IN; mkfifo $PERCOL_IN }
-    [ -p $PERCOL_OUT ] || { command rm -f $PERCOL_OUT; mkfifo $PERCOL_OUT }
+    [ -p $PERCOL_IN ] || { command rm -f $PERCOL_IN; mkfifo -m 600 $PERCOL_IN }
+    [ -p $PERCOL_OUT ] || { command rm -f $PERCOL_OUT; mkfifo -m 600 $PERCOL_OUT }
 }
 function _percol_clean_fifos() {
     command rm -f $PERCOL_IN
