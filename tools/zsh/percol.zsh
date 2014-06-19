@@ -35,6 +35,10 @@
 
 PERCOL_ENABLED=true
 
+function exists() {
+  which $1 &> /dev/null
+}
+
 # Define tac wrapper
 exists gtac && _PERCOL_TAC="gtac" || \
     { exists tac && _PERCOL_TAC="tac" || \
