@@ -17,15 +17,14 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
-import pprint
-
-pp = pprint.PrettyPrinter(indent=2)
+import syslog
+syslog.openlog("Percol")
 
 def log(name, s = ""):
-    with open("/tmp/percol-log", "a") as f:
-        f.write(str(name) + " : " + str(s) + "\n")
+    syslog.syslog(syslog.LOG_ALERT, str(name) + ": " + str(s))
 
 def dump(obj):
-    with open("/tmp/percol-log", "a") as f:
-        f.write(pp.pformat(obj) + "\n")
+    import pprint
+    pp = pprint.PrettyPrinter(indent=2)
+    syslog.syslog(syslog.LOG_ALERT, str(name) + ": " + pp.pformat(obj))
     return obj
