@@ -18,7 +18,7 @@
 #
 
 import unicodedata
-import types
+import six
 import curses
 import re
 
@@ -35,7 +35,7 @@ FG_COLORS = {
     "white"   : curses.COLOR_WHITE,
 }
 
-BG_COLORS = dict(("on_" + name, value) for name, value in FG_COLORS.iteritems())
+BG_COLORS = dict(("on_" + name, value) for name, value in six.iteritems(FG_COLORS))
 
 ATTRS = {
     "altcharset" : curses.A_ALTCHARSET,
@@ -87,11 +87,11 @@ def screen_len(s, beg = None, end = None):
         end = len(s[beg:end].expandtabs())
         s = s.expandtabs()
 
-    if s.__class__ != types.UnicodeType:
+    if not isinstance(s, six.text_type):
         return end - beg
 
     dis_len = end - beg
-    for i in xrange(beg, end):
+    for i in six.moves.range(beg, end):
         if unicodedata.east_asian_width(s[i]) in ("W", "F"):
             dis_len += 1
 
@@ -165,8 +165,8 @@ class Display(object):
     # ============================================================ #
 
     def init_color_pairs(self):
-        for fg_s, fg in FG_COLORS.iteritems():
-            for bg_s, bg in BG_COLORS.iteritems():
+        for fg_s, fg in six.iteritems(FG_COLORS):
+            for bg_s, bg in six.iteritems(BG_COLORS):
                 if not (fg == bg == 0):
                     curses.init_pair(self.get_pair_number(fg, bg), fg, bg)
 
@@ -296,10 +296,10 @@ class Display(object):
         self.screen.refresh()
 
     def get_raw_string(self, s):
-        return s.encode(self.encoding) if s.__class__ == types.UnicodeType else s
+        return s.encode(self.encoding) if isinstance(s, six.text_type) else s
 
     def addnstr(self, y, x, s, n, style):
-        if style.__class__ != types.IntType:
+        if not isinstance(style, six.integer_types):
             style = self.attrs_to_style(style)
 
         # Compute bytes count of the substring that fits in the screen

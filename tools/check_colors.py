@@ -19,6 +19,7 @@
 #
 
 import curses
+import six
 
 if __name__ == "__main__":
     screen = curses.initscr()
@@ -27,8 +28,8 @@ if __name__ == "__main__":
         curses.start_color()
 
         def get_fg_bg():
-            for bg in xrange(0, curses.COLORS):
-                for fg in xrange(0, curses.COLORS):
+            for bg in six.moves.range(0, curses.COLORS):
+                for fg in six.moves.range(0, curses.COLORS):
                     yield bg, fg
 
         def pair_number(fg, bg):

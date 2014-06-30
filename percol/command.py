@@ -17,6 +17,8 @@
 # Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
 #
 
+import six
+
 class SelectorCommand(object):
     """
     Wraps up SelectorModel and provides advanced commands
@@ -95,7 +97,7 @@ class SelectorCommand(object):
         self.select_successor()
 
     def __get_all_mark_indices(self):
-        return xrange(self.model.results_count)
+        return six.moves.range(self.model.results_count)
 
     def mark_all(self):
         for mark_index in self.__get_all_mark_indices():

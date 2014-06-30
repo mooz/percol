@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from distutils.core import setup
+from setuptools import setup
 
 import percol
 
@@ -22,4 +22,5 @@ setup(name             = "percol",
                           "Topic :: Utilities"],
       keywords         = "anything.el unite.vim dmenu shell pipe filter curses",
       license          = "MIT",
+      install_requires = ["six"],
       )

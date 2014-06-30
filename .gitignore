@@ -7,3 +7,4 @@ Thumbs.db
 tags
 build/
 dist/
+percol.egg-info/

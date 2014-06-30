@@ -18,6 +18,7 @@
 #
 
 import curses, array
+import six
 
 SPECIAL_KEYS = {
     curses.KEY_A1        : "<a1>",
@@ -208,7 +209,7 @@ class KeyHandler(object):
 
     def get_utf8_key_for(self, ch):
         buf = array.array("B", [ch])
-        buf.extend(self.screen.getch() for i in xrange(1, self.get_utf8_count(ch)))
+        buf.extend(self.screen.getch() for i in six.moves.range(1, self.get_utf8_count(ch)))
         return buf.tostring().decode("utf-8")
 
     def is_utf8_multibyte_key(self, ch):

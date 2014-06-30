@@ -20,6 +20,7 @@
 import sys
 import os
 import locale
+import six
 
 from optparse import OptionParser
 
@@ -74,8 +75,8 @@ def load_rc(percol, path = None, encoding = 'utf-8'):
 
 def eval_string(percol, string_to_eval, encoding = 'utf-8'):
     try:
-        import types
-        if string_to_eval.__class__ != types.UnicodeType:
+        import six
+        if not isinstance(string_to_eval, six.text_type):
             string_to_eval = string_to_eval.decode(encoding)
         exec(string_to_eval, locals())
     except Exception as e:
@@ -146,7 +147,7 @@ def read_input(filename, encoding, reverse=False):
     else:
         lines = stream
     for line in lines:
-        yield unicode(ansi.remove_escapes(line.rstrip("\r\n")), encoding, "replace")
+        yield six.text_type(ansi.remove_escapes(line.rstrip("\r\n")), encoding, "replace")
     stream.close()
 
 def decide_match_method(options):
@@ -186,7 +187,7 @@ Maybe all descriptors are redirecred.""")
     output_encoding = set_proper_locale(options)
     input_encoding = options.input_encoding
 
-    with open(ttyname, "r+w") as tty_f:
+    with open(ttyname, "w") as tty_f:
         if not tty_f.isatty():
             exit_program("Error: {0} is not a tty file".format(ttyname), show_help = False)
 

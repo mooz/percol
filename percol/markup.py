@@ -103,7 +103,7 @@ class MarkupParser(object):
         raise Exception("Unclosed tag " + "".join(buf))
 
 if __name__ == "__main__":
-    import pprint, sys, types
+    import pprint, sys, six
 
     parser = MarkupParser()
 
@@ -127,7 +127,7 @@ if __name__ == "__main__":
             "on_white"   : 47,
         }
 
-        if color.__class__ == types.StringType:
+        if isinstance(color, six.string_types):
             try:
                 color = colors[color]
             except:
