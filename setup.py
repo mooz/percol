@@ -22,5 +22,5 @@ setup(name             = "percol",
                           "Topic :: Utilities"],
       keywords         = "anything.el unite.vim dmenu shell pipe filter curses",
       license          = "MIT",
-      install_requires = ["six"],
+      install_requires = ["six >= 1.7.3"],
       )
