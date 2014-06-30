@@ -187,7 +187,14 @@ Maybe all descriptors are redirecred.""")
     output_encoding = set_proper_locale(options)
     input_encoding = options.input_encoding
 
-    with open(ttyname, "w") as tty_f:
+    def open_tty(ttyname):
+        if six.PY2:
+            return open(ttyname, "r+w")
+        else:
+            # See https://github.com/stefanholek/term/issues/1
+            return open(ttyname, "wb+", buffering=0)
+
+    with open_tty(ttyname) as tty_f:
         if not tty_f.isatty():
             exit_program("Error: {0} is not a tty file".format(ttyname), show_help = False)
 
