@@ -166,14 +166,20 @@ class SelectorModel(object):
     # Text
     # ------------------------------------------------------------ #
 
+    def __decode_char(self, ch):
+        if six.PY2:
+            return chr(ch).decode(self.percol.encoding)
+        else:
+            return str(bytearray([ch]), encoding=self.percol.encoding)
+
     def append_char_to_query(self, ch):
-        self.query += chr(ch).decode(self.percol.encoding)
+        self.query += self.__decode_char(ch)
         self.forward_char()
 
     def insert_char(self, ch):
         q = self.query
         c = self.caret
-        self.query = q[:c] + chr(ch).decode(self.percol.encoding) + q[c:]
+        self.query = q[:c] + self.__decode_char(ch) + q[c:]
         self.set_caret(c + 1)
 
     def insert_string(self, string):
