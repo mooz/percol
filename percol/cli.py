@@ -138,16 +138,24 @@ def set_proper_locale(options):
     return output_encoding
 
 def read_input(filename, encoding, reverse=False):
+    import codecs
     if filename:
-        stream = open(filename, "r")
+        if six.PY2:
+            stream = codecs.getreader(encoding)(open(filename, "r"), "replace")
+        else:
+            stream = open(filename, "r", encoding=encoding)
     else:
-        stream = sys.stdin
+        if six.PY2:
+            stream = codecs.getreader(encoding)(sys.stdin, "replace")
+        else:
+            import io
+            stream = io.TextIOWrapper(sys.stdin.buffer, encoding=encoding)
     if reverse:
         lines = reversed(stream.readlines())
     else:
         lines = stream
     for line in lines:
-        yield six.text_type(ansi.remove_escapes(line.rstrip("\r\n")), encoding, "replace")
+        yield ansi.remove_escapes(line.rstrip("\r\n"))
     stream.close()
 
 def decide_match_method(options):
