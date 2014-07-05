@@ -171,6 +171,26 @@ Here are some examples of tmux and percol integration.
 
 By putting above 2 settings into `tmux.conf`, you can select a tmux window with `${TMUX_PREFIX} b` keys and session with `${TMUX_PREFIX} B` keys.
 
+Attaching to running tmux sessions can also be made easier with percol with this function(tested to work in bash and zsh)
+
+```sh
+function pattach() {
+    if [[ $1 == "" ]]; then
+        PERCOL=percol
+    else
+        PERCOL="percol --query $1"
+    fi
+
+    sessions=$(tmux ls)
+    [ $? -ne 0 ] && return
+
+    session=$(echo $sessions | eval $PERCOL | cut -d : -f 1)
+    if [[ -n "$session" ]]; then
+        tmux att -t $session
+    fi
+}
+```
+
 ## Configuration
 
 Configuration file for percol should be placed under `${HOME}/.percol.d/` and named `rc.py`.
