@@ -58,7 +58,7 @@ def markup(string):
     return decorate_parse_result(markup_parser.parse(string))
 
 def remove_escapes(string):
-    return re.sub(r"\x1B\[([0-9]{1,2}(;[0-9]{1,2})?)?[m|K]", "", string)
+    return re.sub(r"\x1B\[(?:[0-9]{1,2}(?:;[0-9]{1,2})?)?[m|K]", "", string)
 
 def decorate_parse_result(parse_result):
     decorated_string = ""
