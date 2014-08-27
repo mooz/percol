@@ -191,6 +191,19 @@ class SelectorCommand(object):
                                self.model.query[caret + 1:]
             self.forward_char()
 
+    def unnarrow(self):
+        """
+        Clears the query, but keeps the current line selected. Useful to
+        show context around a search match.
+        """
+        try:
+            original_index = self.model.results[self.model.index][2]
+        except IndexError:
+            original_index = 0
+        self.clear_query()
+        self.model.do_search("")
+        self.model.select_index(original_index)
+
     # ------------------------------------------------------------ #
     # Text > kill
     # ------------------------------------------------------------ #
