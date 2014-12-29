@@ -82,7 +82,7 @@ function _percol_popup_tmux() {
 function _percol_popup() {
     INPUT=$1
     PERCOL_OPTION=$2
-    if [[ -n $TMUX ]]; then
+    if [[ -n $TMUX && -n $PERCOL_USE_TMUX ]]; then
         eval "_percol_popup_tmux ${PERCOL_OPTION}; ${INPUT} > ${PERCOL_IN} &; cat ${PERCOL_OUT}"
     else
         eval "${INPUT} | percol ${(Q)PERCOL_OPTION}"
