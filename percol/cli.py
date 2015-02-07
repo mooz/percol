@@ -153,9 +153,12 @@ def decide_match_method(options):
     if options.match_method == "regex":
         from percol.finder import FinderMultiQueryRegex
         return FinderMultiQueryRegex
-    if options.match_method == "migemo":
+    elif options.match_method == "migemo":
         from percol.finder import FinderMultiQueryMigemo
         return FinderMultiQueryMigemo
+    elif options.match_method == "pinyin":
+        from percol.finder import FinderMultiQueryPinyin
+        return FinderMultiQueryPinyin
     else:
         from percol.finder import FinderMultiQueryString
         return FinderMultiQueryString
