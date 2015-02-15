@@ -32,6 +32,7 @@ percol adds flavor of interactive selection to the traditional pipe concept on U
     - [Migemo support](#migemo-support)
         - [Dictionary settings](#dictionary-settings)
         - [Minimum query length](#minimum-query-length)
+    - [Pinyin support](#pinyin-support)
     - [Switching matching method dynamically](#switching-matching-method-dynamically)
 - [Tips](#tips)
     - [Selecting multiple candidates](#selecting-multiple-candidates)
@@ -363,6 +364,17 @@ To change this behavior, change the value of `FinderMultiQueryMigemo.minimum_que
 from percol.finder import FinderMultiQueryMigemo
 FinderMultiQueryMigemo.minimum_query_length = 1
 ```
+
+### Pinyin support
+
+Now percol supports **pinyin** (http://en.wikipedia.org/wiki/Pinyin/) for matching Chinese characters.
+
+    $ percol --match-method pinyin
+
+In this matching method, first char of each Chinese character's pinyin sequence is used for matching.
+For example, 'zw' matches '中文' (ZhongWen), '中午'(ZhongWu), '作为' (ZuoWei) etc.
+
+Extra package pinin(https://pypi.python.org/pypi/pinyin/0.2.5) needed.
 
 ### Switching matching method dynamically
 
