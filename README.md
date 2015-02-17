@@ -367,7 +367,7 @@ FinderMultiQueryMigemo.minimum_query_length = 1
 
 ### Pinyin support
 
-Now percol supports **pinyin** (http://en.wikipedia.org/wiki/Pinyin/) for matching Chinese characters.
+Now percol supports **pinyin** (http://en.wikipedia.org/wiki/Pinyin) for matching Chinese characters.
 
     $ percol --match-method pinyin
 
