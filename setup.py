@@ -2,15 +2,15 @@
 
 from setuptools import setup
 
-import percol
+exec(open("percol/info.py").read())
 
 setup(name             = "percol",
-      version          = percol.__version__,
+      version          = __version__,
       author           = "mooz",
       author_email     = "stillpedant@gmail.com",
       url              = "https://github.com/mooz/percol",
       description      = "Adds flavor of interactive filtering to the traditional pipe concept of shell",
-      long_description = percol.__doc__,
+      long_description = __doc__,
       packages         = ["percol"],
       scripts          = ["bin/percol"],
       classifiers      = ["Environment :: Console :: Curses",
