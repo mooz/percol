@@ -217,6 +217,10 @@ Maybe all descriptors are redirecred."""))
 
         filename = args[0] if len(args) > 0 else None
 
+        if filename and not os.access(filename, os.R_OK):
+            exit_program(error_message("Cannot read a file '" + filename + "'"),
+                         show_help=False)
+
         if filename is None and sys.stdin.isatty():
             tty_f.write(INSTRUCTION_TEXT)
             exit_program(show_help = False)
