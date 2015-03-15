@@ -36,6 +36,7 @@ class SelectorView(object):
     CANDIDATES_LINE_SELECTED = ("underline", "on_magenta", "white")
     CANDIDATES_LINE_MARKED   = ("bold", "on_cyan", "black")
     CANDIDATES_LINE_QUERY    = ("yellow", "bold")
+    MESSAGE_ERROR            = ("on_red", "white")
 
     @property
     def RESULTS_DISPLAY_MAX(self):
@@ -99,6 +100,9 @@ class SelectorView(object):
                                             style = keyword_style)
                 except curses.error as e:
                     debug.log("addnstr", str(e) + " ({0})".format(y))
+
+    def display_error_message(self, message):
+        self.display_line(self.RESULTS_OFFSET_V, 0, message, style=self.MESSAGE_ERROR)
 
     def display_results(self):
         result_vertical_pos = self.RESULTS_OFFSET_V
