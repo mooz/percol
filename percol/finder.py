@@ -228,15 +228,12 @@ class FinderMultiQueryMigemo(FinderMultiQuery):
         return self.migemo_instance
 
     def transform_query(self, needle):
-        try:
-            if len(needle) >= self.minimum_query_length:
-                regexp_string = self.migemo.query(needle)
-            else:
-                regexp_string = needle
-            import re
-            return re.compile(regexp_string)
-        except:
-            return None
+        if len(needle) >= self.minimum_query_length:
+            regexp_string = self.migemo.query(needle)
+        else:
+            regexp_string = needle
+        import re
+        return re.compile(regexp_string)
 
     def find_query(self, needle, haystack):
         try:
