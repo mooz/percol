@@ -82,6 +82,9 @@ def eval_string(percol, string_to_eval, encoding = 'utf-8'):
     except Exception as e:
         debug.log("Exception in eval_string", e)
 
+def error_message(message):
+    return ansi.markup("<bold><on_red><white>[Error]</white></on_red></bold> " + message)
+
 def setup_options(parser):
     parser.add_option("--tty", dest = "tty",
                       help = "path to the TTY (usually, the value of $TTY)")
