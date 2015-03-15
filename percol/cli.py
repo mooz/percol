@@ -196,8 +196,8 @@ def main():
     # get ttyname
     ttyname = options.tty or tty.get_ttyname()
     if not ttyname:
-        exit_program("""Error: No tty name is given and failed to guess it from descriptors.
-Maybe all descriptors are redirecred.""")
+        exit_program(error_message("""No tty name is given and failed to guess it from descriptors.
+Maybe all descriptors are redirecred."""))
 
     # decide which encoding to use
     output_encoding = set_proper_locale(options)
@@ -212,7 +212,8 @@ Maybe all descriptors are redirecred.""")
 
     with open_tty(ttyname) as tty_f:
         if not tty_f.isatty():
-            exit_program("Error: {0} is not a tty file".format(ttyname), show_help = False)
+            exit_program(error_message("{0} is not a tty file".format(ttyname)),
+                         show_help = False)
 
         filename = args[0] if len(args) > 0 else None
 
