@@ -110,14 +110,18 @@ class SelectorView(object):
 
         results_in_page = islice(enumerate(self.model.results), self.absolute_page_head, self.absolute_page_tail)
 
-        for cand_nth, result in results_in_page:
-            try:
-                self.display_result(result_vertical_pos, result,
-                                    is_current = cand_nth == self.model.index,
-                                    is_marked = self.model.get_is_marked(cand_nth))
-            except curses.error as e:
-                debug.log("display_results", str(e))
-            result_vertical_pos += result_pos_direction
+        try:
+            for cand_nth, result in results_in_page:
+                try:
+                    self.display_result(result_vertical_pos, result,
+                                        is_current = cand_nth == self.model.index,
+                                        is_marked = self.model.get_is_marked(cand_nth))
+                except curses.error as e:
+                    debug.log("display_results", str(e))
+                result_vertical_pos += result_pos_direction
+        except Exception as e:
+            exception_raw_string = str(e).decode(self.percol.encoding) if six.PY2 else str(e)
+            self.display_error_message("Error: " + exception_raw_string)
 
     results_top_down = True
 
