@@ -243,3 +243,39 @@ class FinderMultiQueryMigemo(FinderMultiQuery):
             return [(matched.start(), matched.end() - matched.start())]
         except:
             return None
+
+
+# ============================================================ #
+# Finder > AND search > Pinyin support
+# ============================================================ #
+
+class FinderMultiQueryPinyin(FinderMultiQuery):
+    """
+    In this matching method, first char of each Chinese character's
+    pinyin sequence is used for matching. For example, 'zw' matches
+    '中文' (ZhongWen), '中午'(ZhongWu), '作为' (ZuoWei) etc.
+
+    Extra package 'pinyin' needed.
+    """
+    def get_name (self):
+        return "pinyin"
+
+    def find_query (self, needle, haystack):
+        try:
+            import pinyin
+            haystack_py = pinyin.get_initial(haystack, '' )
+            needle_len = len(needle)
+            start = 0
+            result = []
+
+            while True :
+                found = haystack_py.find(needle, start)
+                if found < 0 :
+                    break
+                result.append((found, needle_len))
+                start = found + needle_len
+
+            return result
+        except :
+            return None
+
