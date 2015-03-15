@@ -32,6 +32,7 @@ class Finder(object):
 
     def clone_as(self, new_finder_class):
         new_finder = new_finder_class(collection = self.collection)
+        new_finder.invert_match = self.invert_match
         new_finder.lazy_finding = self.lazy_finding
         return new_finder
 
@@ -43,6 +44,7 @@ class Finder(object):
     def find(self, query, collection = None):
         pass
 
+    invert_match = False
     lazy_finding = True
     def get_results(self, query, collection = None):
         if self.lazy_finding:
@@ -123,6 +125,10 @@ class FinderMultiQuery(CachedFinder):
                 else:
                     line_to_match = line
                 res = self.find_queries(queries, line_to_match)
+                # When invert_match is enabled (via "-v" option),
+                # select non matching line
+                if self.invert_match:
+                    res = None if res else self.dummy_res
 
             if res:
                 yield line, res, idx

@@ -90,6 +90,8 @@ def setup_options(parser):
                       help = "encoding for output")
     parser.add_option("--input-encoding", dest = "input_encoding", default = "utf8",
                       help = "encoding for input and output (default 'utf8')")
+    parser.add_option("-v", "--invert-match", action="store_true", dest = "invert_match", default = False,
+                      help = "select non-matching lines")
     parser.add_option("--query", dest = "query",
                       help = "pre-input query")
     parser.add_option("--eager", action = "store_true", dest = "eager", default = False,
@@ -215,6 +217,7 @@ Maybe all descriptors are redirecred.""")
         def set_finder_attribute_from_option(finder_instance):
             finder_instance.lazy_finding = not options.eager
             finder_instance.case_insensitive = not options.case_sensitive
+            finder_instance.invert_match = options.invert_match
 
         def set_if_not_none(src, dest, name):
             value = getattr(src, name)
@@ -242,7 +245,6 @@ Maybe all descriptors are redirecred.""")
                 eval_string(percol, options.string_to_eval, locale.getpreferredencoding())
             # finder settings from option values
             set_finder_attribute_from_option(percol.model_candidate.finder)
-            set_finder_attribute_from_option(percol.model_action.finder)
             # view settings from option values
             set_if_not_none(options, percol.view, 'prompt_on_top')
             set_if_not_none(options, percol.view, 'results_top_down')
