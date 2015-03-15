@@ -32,6 +32,7 @@ percol adds flavor of interactive selection to the traditional pipe concept on U
     - [Migemo support](#migemo-support)
         - [Dictionary settings](#dictionary-settings)
         - [Minimum query length](#minimum-query-length)
+    - [Pinyin support](#pinyin-support)
     - [Switching matching method dynamically](#switching-matching-method-dynamically)
 - [Tips](#tips)
     - [Selecting multiple candidates](#selecting-multiple-candidates)
@@ -166,10 +167,30 @@ Then, you can display and search your zsh histories incrementally by pressing `C
 
 Here are some examples of tmux and percol integration.
 
-    bind b split-window "tmux lsw | percol --initial-index $(tmux lsw | awk '/active.$/ {print NR-1}') | cut -d':' -f 1 | xargs tmux select-window -t"
-    bind B split-window "tmux ls | percol --initial-index $(tmux ls | awk '/attached.$/ {print NR-1}') | cut -d':' -f 1 | xargs tmux switch-client -t"
+    bind b split-window "tmux lsw | percol --initial-index $(tmux lsw | awk '/active.$/ {print NR-1}') | cut -d':' -f 1 | tr -d '\n' | xargs -0 tmux select-window -t"
+    bind B split-window "tmux ls | percol --initial-index $(tmux ls | awk \"/^$(tmux display-message -p '#{session_name}'):/ {print NR-1}\") | cut -d':' -f 1 | tr -d '\n' | xargs -0 tmux switch-client -t"
 
 By putting above 2 settings into `tmux.conf`, you can select a tmux window with `${TMUX_PREFIX} b` keys and session with `${TMUX_PREFIX} B` keys.
+
+Attaching to running tmux sessions can also be made easier with percol with this function(tested to work in bash and zsh)
+
+```sh
+function pattach() {
+    if [[ $1 == "" ]]; then
+        PERCOL=percol
+    else
+        PERCOL="percol --query $1"
+    fi
+
+    sessions=$(tmux ls)
+    [ $? -ne 0 ] && return
+
+    session=$(echo $sessions | eval $PERCOL | cut -d : -f 1)
+    if [[ -n "$session" ]]; then
+        tmux att -t $session
+    fi
+}
+```
 
 ## Configuration
 
@@ -343,6 +364,17 @@ To change this behavior, change the value of `FinderMultiQueryMigemo.minimum_que
 from percol.finder import FinderMultiQueryMigemo
 FinderMultiQueryMigemo.minimum_query_length = 1
 ```
+
+### Pinyin support
+
+Now percol supports **pinyin** (http://en.wikipedia.org/wiki/Pinyin) for matching Chinese characters.
+
+    $ percol --match-method pinyin
+
+In this matching method, first char of each Chinese character's pinyin sequence is used for matching.
+For example, 'zw' matches '中文' (ZhongWen), '中午'(ZhongWu), '作为' (ZuoWei) etc.
+
+Extra package pinin(https://pypi.python.org/pypi/pinyin/0.2.5) needed.
 
 ### Switching matching method dynamically
 

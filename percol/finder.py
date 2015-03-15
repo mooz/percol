@@ -33,6 +33,7 @@ class Finder(object):
 
     def clone_as(self, new_finder_class):
         new_finder = new_finder_class(collection = self.collection)
+        new_finder.invert_match = self.invert_match
         new_finder.lazy_finding = self.lazy_finding
         return new_finder
 
@@ -44,6 +45,7 @@ class Finder(object):
     def find(self, query, collection = None):
         pass
 
+    invert_match = False
     lazy_finding = True
     def get_results(self, query, collection = None):
         if self.lazy_finding:
@@ -124,6 +126,10 @@ class FinderMultiQuery(CachedFinder):
                 else:
                     line_to_match = line
                 res = self.find_queries(queries, line_to_match)
+                # When invert_match is enabled (via "-v" option),
+                # select non matching line
+                if self.invert_match:
+                    res = None if res else self.dummy_res
 
             if res:
                 yield line, res, idx
@@ -238,3 +244,39 @@ class FinderMultiQueryMigemo(FinderMultiQuery):
             return [(matched.start(), matched.end() - matched.start())]
         except:
             return None
+
+
+# ============================================================ #
+# Finder > AND search > Pinyin support
+# ============================================================ #
+
+class FinderMultiQueryPinyin(FinderMultiQuery):
+    """
+    In this matching method, first char of each Chinese character's
+    pinyin sequence is used for matching. For example, 'zw' matches
+    '中文' (ZhongWen), '中午'(ZhongWu), '作为' (ZuoWei) etc.
+
+    Extra package 'pinyin' needed.
+    """
+    def get_name (self):
+        return "pinyin"
+
+    def find_query (self, needle, haystack):
+        try:
+            import pinyin
+            haystack_py = pinyin.get_initial(haystack, '' )
+            needle_len = len(needle)
+            start = 0
+            result = []
+
+            while True :
+                found = haystack_py.find(needle, start)
+                if found < 0 :
+                    break
+                result.append((found, needle_len))
+                start = found + needle_len
+
+            return result
+        except :
+            return None
+
