@@ -188,7 +188,7 @@ def main():
 
     def exit_program(msg = None, show_help = True):
         if not msg is None:
-            print("\n" + msg + "\n")
+            print(msg)
         if show_help:
             parser.print_help()
         exit(1)
