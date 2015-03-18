@@ -216,15 +216,33 @@ class FinderMultiQueryMigemo(FinderMultiQuery):
     def get_name(self):
         return "migemo"
 
-    dictionary_path = "/usr/local/share/migemo/utf-8/migemo-dict"
+    dictionary_path = None
     minimum_query_length = 2
+
+    dictionary_path_candidates = [
+        "/usr/share/cmigemo/utf-8/migemo-dict",
+        "/usr/share/migemo/utf-8/migemo-dict",
+        "/usr/local/share/cmigemo/utf-8/migemo-dict",
+        "/usr/local/share/migemo/utf-8/migemo-dict"
+    ]
+
+    def guess_dictionary_path(self):
+        import os
+        for path in [self.dictionary_path] + self.dictionary_path_candidates:
+            path = os.path.expanduser(path)
+            if os.access(path, os.R_OK):
+                return path
+        return None
 
     migemo_instance = None
     @property
     def migemo(self):
         import migemo, os
         if self.migemo_instance is None:
-            self.migemo_instance = migemo.Migemo(os.path.expanduser(self.dictionary_path))
+            dictionary_path = self.guess_dictionary_path()
+            if dictionary_path is None:
+                raise Exception("Error: Cannot find migemo dictionary. Install it and set dictionary_path.")
+            self.migemo_instance = migemo.Migemo(dictionary_path)
         return self.migemo_instance
 
     def transform_query(self, needle):
