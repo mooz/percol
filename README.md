@@ -334,14 +334,17 @@ By default, percol interprets input queries by users as **string**. If you prefe
 
 ### Migemo support
 
-From version 0.0.2, percol supports **migemo** (http://0xcc.net/migemo/) for `--match-method` experimentally.
+percol supports **migemo** (http://0xcc.net/migemo/) matching, which allows us to search Japanese documents with ASCII characters.
 
     $ percol --match-method migemo
 
-This feature requires following external modules for now.
+To use this feature, you need to install C/Migemo (https://github.com/koron/cmigemo). In Ubuntu, it's simple:
 
-- C/Migemo (http://code.google.com/p/cmigemo/)
-- PyMigemo (http://www.atzm.org/etc/pymigemo.html)
+    $ sudo apt-get install cmigemo
+
+After that, by specifying a command line argument `--match-method migemo`, you can use migemo in percol.
+
+NOTE: This feature uses `python-cmigemo` package (https://github.com/mooz/python-cmigemo). Doing `pip install percol` also installs this package too.
 
 #### Dictionary settings
 

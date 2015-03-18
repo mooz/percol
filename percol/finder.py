@@ -237,12 +237,12 @@ class FinderMultiQueryMigemo(FinderMultiQuery):
     migemo_instance = None
     @property
     def migemo(self):
-        import migemo, os
+        import cmigemo, os
         if self.migemo_instance is None:
             dictionary_path = self.guess_dictionary_path()
             if dictionary_path is None:
                 raise Exception("Error: Cannot find migemo dictionary. Install it and set dictionary_path.")
-            self.migemo_instance = migemo.Migemo(dictionary_path)
+            self.migemo_instance = cmigemo.Migemo(dictionary_path)
         return self.migemo_instance
 
     def transform_query(self, needle):
