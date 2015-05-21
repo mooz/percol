@@ -69,7 +69,7 @@ it can be used in command-chains with `|` in your shell (**UNIX philosophy!**).
 - [peco by @lestrrat](https://github.com/lestrrat/peco)
   - An interactive grep tool written in Go language.
 - [fzf by @junegunn](https://github.com/junegunn/fzf)
-  - An interactive grep tool written in Ruby.
+  - An interactive grep tool written in Go language.
 
 ## Installation
 
