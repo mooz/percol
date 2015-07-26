@@ -205,7 +205,7 @@ Maybe all descriptors are redirecred."""))
                          show_help=False)
 
         if filename is None and sys.stdin.isatty():
-            tty_f.write(INSTRUCTION_TEXT)
+            tty_f.write(INSTRUCTION_TEXT.encode(output_encoding))
             exit_program(show_help = False)
 
         # read input
