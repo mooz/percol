@@ -96,6 +96,7 @@ class Percol(object):
         curses.raw()
         curses.noecho()
         curses.cbreak()
+        curses.nonl()
 
         return self
 
