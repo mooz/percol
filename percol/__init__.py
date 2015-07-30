@@ -209,6 +209,7 @@ class Percol(object):
         "C-SPC"       : lambda percol: percol.command.toggle_mark_and_next(),
         # finish
         "RET"         : lambda percol: percol.finish(), # Is RET never sent?
+        "C-m"         : lambda percol: percol.finish(),
         "C-j"         : lambda percol: percol.finish(),
         "C-c"         : lambda percol: percol.cancel()
     }
