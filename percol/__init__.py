@@ -96,11 +96,14 @@ class Percol(object):
         curses.raw()
         curses.noecho()
         curses.cbreak()
+        # Leave newline mode. Make percol distinguish between "C-m" and "C-j".
         curses.nonl()
 
         return self
 
     def __exit__(self, exc_type, exc_value, traceback):
+        # Back to newline mode (TODO: is it needed?).
+        curses.nl()
         curses.endwin()
         self.execute_action()
 
