@@ -167,14 +167,14 @@ def main():
     options, args = parser.parse_args()
 
     if options.peep:
-        exit(1)
+        sys.exit(1)
 
     def exit_program(msg = None, show_help = True):
         if not msg is None:
             print(msg)
         if show_help:
             parser.print_help()
-        exit(1)
+        sys.exit(1)
 
     # get ttyname
     ttyname = options.tty or tty.get_ttyname()
@@ -266,4 +266,4 @@ Maybe all descriptors are redirecred."""))
             else:
                 exit_code = percol.loop()
 
-        exit(exit_code)
+        sys.exit(exit_code)
