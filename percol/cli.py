@@ -180,7 +180,7 @@ def main():
     ttyname = options.tty or tty.get_ttyname()
     if not ttyname:
         exit_program(error_message("""No tty name is given and failed to guess it from descriptors.
-Maybe all descriptors are redirecred."""))
+Maybe all descriptors are redirected."""))
 
     # decide which encoding to use
     output_encoding = set_proper_locale(options)
