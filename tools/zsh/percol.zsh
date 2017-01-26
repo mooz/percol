@@ -15,6 +15,10 @@
 # Here is the list of zle-widgets provided by this script.
 #
 #  * percol_select_history
+#  * percol_select_variables
+#  * percol_select_functions
+#  * percol_select_aliases
+#  * percol_select_bindkeys
 #  * percol_cd_sibling
 #  * percol_cd_upper_dirs
 #  * percol_cd_bookmark
@@ -160,6 +164,54 @@ function percol_select_history() {
     _percol_clean_prompt
 }
 zle -N percol_select_history
+
+if exists percol; then
+    function percol_select_bindkeys() {
+        output=$(_percol_popup 'bindkey | _percol_tac' '--query \"${LBUFFER}\"')
+        if [[ $output != "" ]]; then
+            BUFFER=$output
+            CURSOR=$#BUFFER
+        fi
+        _percol_clean_prompt
+    }
+    zle -N percol_select_bindkeys
+fi
+
+if exists percol; then
+    function percol_select_variables() {
+        output=$(_percol_popup 'env | _percol_tac' '--query \"${LBUFFER}\"')
+        if [[ $output != "" ]]; then
+            BUFFER=$output
+            CURSOR=$#BUFFER
+        fi
+        _percol_clean_prompt
+    }
+    zle -N percol_select_variables
+fi
+
+if exists percol; then
+    function percol_select_functions() {
+        output=$(_percol_popup 'functions | grep "() {" | _percol_tac' '--query \"${LBUFFER}\"')
+        if [[ $output != "" ]]; then
+            BUFFER=$output
+            CURSOR=$#BUFFER
+        fi
+        _percol_clean_prompt
+    }
+    zle -N percol_select_functions
+fi
+
+if exists percol; then
+    function percol_select_aliases() {
+        output=$(_percol_popup 'alias | _percol_tac' '--query \"${LBUFFER}\"')
+        if [[ $output != "" ]]; then
+            BUFFER=$output
+            CURSOR=$#BUFFER
+        fi
+        _percol_clean_prompt
+    }
+    zle -N percol_select_aliases
+fi
 
 function percol_cd_sibling() {
     destination=$(_percol_popup "_percol_list_siblings")
