@@ -1,0 +1,9 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+
+Files: *
+Copyright: 2011-2013, mooz
+License: GPL-2+
+
+Files: debian/*
+Copyright: 2017, Antoine Beaupré, Kozo Nishida
+License: GPL-2+
