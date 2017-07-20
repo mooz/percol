@@ -14,7 +14,7 @@ Architecture: all
 Depends: ${misc:Depends}
        , ${python:Depends}
 Recommends: cmigego
-Description: percol adds interactive selection to UNIX pipes
+Description: interactive selection for UNIX pipes
  An interactive grep tool in your terminal. Percol does the following:
  .
  1. receives input lines from stdin or a file,
