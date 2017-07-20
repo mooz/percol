@@ -14,7 +14,7 @@ Architecture: all
 Depends: ${misc:Depends}
        , ${python:Depends}
 Description: percol adds interactive selection to UNIX pipes
- percol is an interactive grep tool in your terminal. percol:
+ An interactive grep tool in your terminal. Percol does the following:
  .
  1. receives input lines from stdin or a file,
  2. lists up the input lines,
