@@ -1,10 +1,15 @@
+percol (0.2.1-1) unstable; urgency=medium
+
+  * New upstream version (Closes: #754972)
+
+ -- Antoine Beaupré <anarcat@debian.org>  Thu, 20 Jul 2017 17:06:10 -0400
+
 percol (0.1.0-1) unstable; urgency=medium
 
   [ Kozo Nishida ]
   * Initial public release
 
   [ Antoine Beaupré ]
-  * New upstream version (Closes: #754972)
   * Fix lintian warnings
   * Add missing dh-python dependency
   * Update standards, no change
