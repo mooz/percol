@@ -1,6 +1,6 @@
 Source: python-percol
-Section: python
-Priority: extra
+Section: utils
+Priority: optional
 Maintainer: Kozo Nishida <kozo.nishida@gmail.com>
 Build-Depends: debhelper (>= 9)
              , python
