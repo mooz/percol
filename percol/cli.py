@@ -1,21 +1,4 @@
 # -*- coding: utf-8 -*-
-#
-# Copyright (C) 2013 mooz
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-#
 
 import sys
 import os
@@ -222,7 +205,7 @@ Maybe all descriptors are redirecred."""))
                          show_help=False)
 
         if filename is None and sys.stdin.isatty():
-            tty_f.write(INSTRUCTION_TEXT)
+            tty_f.write(INSTRUCTION_TEXT.encode(output_encoding))
             exit_program(show_help = False)
 
         # read input

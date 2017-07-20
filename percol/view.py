@@ -1,21 +1,4 @@
 # -*- coding: utf-8 -*-
-#
-# Copyright (C) 2011 mooz
-#
-# This program is free software; you can redistribute it and/or modify
-# it under the terms of the GNU General Public License as published by
-# the Free Software Foundation; either version 2 of the License, or
-# (at your option) any later version.
-#
-# This program is distributed in the hope that it will be useful,
-# but WITHOUT ANY WARRANTY; without even the implied warranty of
-# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-# GNU General Public License for more details.
-#
-# You should have received a copy of the GNU General Public License
-# along with this program; if not, write to the Free Software
-# Foundation, Inc., 675 Mass Ave, Cambridge, MA 02139, USA.
-#
 
 import re
 import curses
@@ -120,8 +103,17 @@ class SelectorView(object):
                     debug.log("display_results", str(e))
                 result_vertical_pos += result_pos_direction
         except Exception as e:
+            # debug.log("display_results", str(e))
+            debug.log("display_results",
+                      six.text_type(" | ".join(
+                          map(lambda key: six.text_type(key) +
+                              ": "
+                              + six.text_type(e.__getattribute__(key)),
+                              dir(e)
+                          ))
+                      ))
             exception_raw_string = str(e).decode(self.percol.encoding) if six.PY2 else str(e)
-            self.display_error_message("Error: " + exception_raw_string)
+            self.display_error_message("Error at line " + str(cand_nth) + ": " + exception_raw_string)
 
     results_top_down = True
 
