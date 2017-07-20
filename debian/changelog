@@ -1,6 +1,6 @@
 python-percol (0.2.1-1) unstable; urgency=medium
 
-  * New upstream version
+  * New upstream version (Closes: #754972)
 
  -- Antoine Beaupré <anarcat@debian.org>  Thu, 20 Jul 2017 16:19:12 -0400
 
