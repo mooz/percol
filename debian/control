@@ -2,11 +2,16 @@ Source: python-percol
 Section: python
 Priority: extra
 Maintainer: Kozo Nishida <kozo.nishida@gmail.com>
-Build-Depends: debhelper (>= 9), python
+Build-Depends: debhelper (>= 9)
+             , python
+             , python-setuptools
+XS-Python-Version: >= 2.7
 Standards-Version: 3.9.5
 
 Package: python-percol
 Architecture: all
+Depends: ${misc:Depends}
+       , ${python:Depends}
 Description: percol adds flavor of interactive selection to the traditional pipe concept on UNIX.
  percol is an interactive grep tool in your terminal. percol
  1. receives input lines from stdin or a file,
