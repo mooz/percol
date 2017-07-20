@@ -9,7 +9,7 @@ Build-Depends: debhelper (>= 9)
 XS-Python-Version: >= 2.7
 Standards-Version: 3.9.8
 
-Package: python-percol
+Package: percol
 Architecture: all
 Depends: ${misc:Depends}
        , ${python:Depends}
