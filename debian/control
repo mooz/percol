@@ -5,6 +5,7 @@ Maintainer: Kozo Nishida <kozo.nishida@gmail.com>
 Build-Depends: debhelper (>= 9)
              , python
              , python-setuptools
+             , dh-python
 XS-Python-Version: >= 2.7
 Standards-Version: 3.9.5
 
