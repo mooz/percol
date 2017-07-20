@@ -1,4 +1,4 @@
-Source: python-percol
+Source: percol
 Section: utils
 Priority: optional
 Maintainer: Kozo Nishida <kozo.nishida@gmail.com>
