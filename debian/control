@@ -13,6 +13,7 @@ Package: percol
 Architecture: all
 Depends: ${misc:Depends}
        , ${python:Depends}
+Recommends: cmigego
 Description: percol adds interactive selection to UNIX pipes
  An interactive grep tool in your terminal. Percol does the following:
  .
