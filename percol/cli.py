@@ -119,7 +119,10 @@ def setup_options(parser):
                       help = "exit immediately with doing nothing to cache module files and speed up start-up time")
 
 def set_proper_locale(options):
-    locale.setlocale(locale.LC_ALL, '')
+    try:
+        locale.setlocale(locale.LC_ALL, '')
+    except Exception as e:
+        debug.log("Exception in setlocale", e)
     output_encoding = locale.getpreferredencoding()
     if options.output_encoding:
         output_encoding = options.output_encoding
