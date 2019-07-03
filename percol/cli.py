@@ -117,6 +117,8 @@ def setup_options(parser):
                       help = "whether quote the output line")
     parser.add_option("--peep", action = "store_true", dest = "peep", default = False,
                       help = "exit immediately with doing nothing to cache module files and speed up start-up time")
+    parser.add_option("--select-ignore", dest="select_ignore",
+                      help="lines that match regex cannot be selected")
 
 def set_proper_locale(options):
     try:
@@ -261,6 +263,9 @@ Maybe all descriptors are redirected."""))
             # view settings from option values
             set_if_not_none(options, percol.view, 'prompt_on_top')
             set_if_not_none(options, percol.view, 'results_top_down')
+            # command settings from options
+            set_if_not_none(options, percol.command_candidate, 'select_ignore')
+            
             # enter main loop
             if options.auto_fail and percol.has_no_candidate():
                 exit_code = percol.cancel_with_exit_code()
