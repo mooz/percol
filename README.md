@@ -20,6 +20,7 @@ percol adds flavor of interactive selection to the traditional pipe concept on U
     - [Interactive pgrep / pkill](#interactive-pgrep--pkill)
     - [zsh history search](#zsh-history-search)
     - [tmux](#tmux)
+    - [Calling percol from Python](#calling-percol-from-python)
 - [Configuration](#configuration)
     - [Customizing prompt](#customizing-prompt)
         - [Dynamic prompt](#dynamic-prompt)
@@ -190,6 +191,31 @@ function pattach() {
         tmux att -t $session
     fi
 }
+```
+
+### Calling percol from Python
+
+Even though Percol is mainly designed as a UNIX command line tool, you can call it from your Python code like so:
+
+```python
+from cStringIO import StringIO
+from percol import Percol
+from percol.actions import no_output
+
+def main(candidates):
+    si, so, se = StringIO(), StringIO(), StringIO()
+    with Percol(
+            actions=[no_output],
+            descriptors={'stdin': si, 'stdout': so, 'stderr': se},
+            candidates=iter(candidates)) as p:
+        p.loop()
+    results = p.model_candidate.get_selected_results_with_index()
+    return [r[0] for r in results]
+
+if __name__ == "__main__":
+    candidates = ['foo', 'bar', 'baz']
+    results = main(candidates)
+    print("You picked: {!r}".format(results))
 ```
 
 ## Configuration
