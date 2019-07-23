@@ -28,3 +28,8 @@ def output_to_stdout_double_quote(lines, percol):
     for line in lines:
         stdout.write(percol.display.get_raw_string(double_quote_string(line)))
         stdout.write(six.b("\n"))
+
+@action()
+def no_output(lines, percol):
+    "ignore all output"
+    pass
