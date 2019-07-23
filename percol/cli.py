@@ -267,9 +267,9 @@ Maybe all descriptors are redirected."""))
             set_if_not_none(options, percol.command_candidate, 'select_ignore')
             
             # enter main loop
-            if options.auto_fail and percol.has_no_candidate():
+            if options.auto_fail and percol.has_no_candidate:
                 exit_code = percol.cancel_with_exit_code()
-            elif options.auto_match and percol.has_only_one_candidate():
+            elif options.auto_match and percol.has_only_one_candidate:
                 exit_code = percol.finish_with_exit_code()
             else:
                 exit_code = percol.loop()
