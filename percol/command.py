@@ -1,14 +1,17 @@
 # -*- coding: utf-8 -*-
-
+import re
 import six
+
 
 class SelectorCommand(object):
     """
     Wraps up SelectorModel and provides advanced commands
     """
+
     def __init__(self, model, view):
         self.model = model
         self.view = view
+        self.select_ignore = r''
 
     # ------------------------------------------------------------ #
     # Selection
@@ -16,6 +19,21 @@ class SelectorCommand(object):
 
     # Line
 
+    def delta_next(self, step=1):
+        delta = step
+        while True:
+            line = self.model.get_result(self.model.index + delta)
+            if line is None:
+                return step
+            if not line or self.select_ignore and re.match(
+                    self.select_ignore, line):
+                delta += step
+                continue
+            break
+        return delta
+
+    def delta_prev(self):
+        return self.delta_next(step=-1)
     def select_successor(self):
         self.model.select_index(self.model.index + 1)
 
