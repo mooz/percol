@@ -255,7 +255,7 @@ Maybe all descriptors are redirected."""))
                 percol.view.__class__.PROMPT = property(lambda self: options.prompt)
             if options.right_prompt is not None:
                 percol.view.__class__.RPROMPT = property(lambda self: options.right_prompt)
-            # evalutate strings specified by the option argument
+            # evaluate strings specified by the option argument
             if options.string_to_eval is not None:
                 eval_string(percol, options.string_to_eval, locale.getpreferredencoding())
             # finder settings from option values
