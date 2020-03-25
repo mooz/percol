@@ -34,11 +34,12 @@ class SelectorCommand(object):
 
     def delta_prev(self):
         return self.delta_next(step=-1)
+
     def select_successor(self):
-        self.model.select_index(self.model.index + 1)
+        self.model.select_index(self.model.index + self.delta_next())
 
     def select_predecessor(self):
-        self.model.select_index(self.model.index - 1)
+        self.model.select_index(self.model.index + self.delta_prev())
 
     def select_next(self):
         if self.view.results_top_down:
@@ -216,6 +217,7 @@ class SelectorCommand(object):
         self.model.query  = self.model.query[:self.model.caret]
 
     killed = None                  # default
+
     def yank(self):
         if self.model.killed:
             self.model.insert_string(self.model.killed)
