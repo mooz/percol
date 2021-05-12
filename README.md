@@ -19,6 +19,7 @@ percol adds flavor of interactive selection to the traditional pipe concept on U
 - [Example](#example)
     - [Interactive pgrep / pkill](#interactive-pgrep--pkill)
     - [zsh history search](#zsh-history-search)
+    - [baash history search](#bash-history-search)
     - [tmux](#tmux)
     - [Calling percol from Python](#calling-percol-from-python)
 - [Configuration](#configuration)
@@ -159,6 +160,33 @@ if exists percol; then
 
     zle -N percol_select_history
     bindkey '^R' percol_select_history
+fi
+```
+
+Then, you can display and search your zsh histories incrementally by pressing `Ctrl + r` key.
+
+### bash history search
+
+In your `.bashrc`, put the lines below.
+
+```sh
+function exists(){
+    which $1 &> /dev/null
+}
+
+if exists percol; then
+    function percol_select_history(){
+        local tac
+        tac=$(exists gtac && echo gtac || exists tac && echo tac || echo tail -r)
+        output=$(fc -l -n 1 | eval $tac | percol --query "$READLINE_LINE")
+        READLINE_LINE=${output#*$'\t '}
+        if [ -z "$READLINE_POINT" ]; then
+            echo "$READLINE_LINE"
+        else
+            READLINE_POINT=${#READLINE_LINE}
+        fi
+    }
+    bind -x '"\C-r": percol_select_history'
 fi
 ```
 
