@@ -84,7 +84,7 @@ percol currently supports only Python 2.x.
 
 First, clone percol repository and go into the directory.
 
-    $ git clone git://github.com/mooz/percol.git
+    $ git clone https://github.com/mooz/percol.git
     $ cd percol
 
 Then, run a command below.
