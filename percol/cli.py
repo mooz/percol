@@ -270,7 +270,7 @@ Maybe all descriptors are redirected."""))
             if options.auto_fail and percol.has_no_candidate:
                 exit_code = percol.cancel_with_exit_code()
             elif options.auto_match and percol.has_only_one_candidate:
-                exit_code = percol.finish_with_exit_code()
+                exit_code = percol.finish_with_exit_code(0)
             else:
                 exit_code = percol.loop()
 
